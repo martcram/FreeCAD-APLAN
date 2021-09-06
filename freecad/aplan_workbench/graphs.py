@@ -24,6 +24,10 @@ class ConnectionGraph(nx.Graph):
         print(f'Saving connection graph of {self.name} to: {file_loc}\n')
         fig.savefig(f'{file_loc}/{self.name}_connection_graph.png', dpi=dpi)
         nx.nx_agraph.write_dot(self, f'{file_loc}/{self.name}_connection_graph.dot')
+    
+    def load(self, file_path):
+        G = nx.Graph(nx.nx_agraph.read_dot(file_path))
+        self.__dict__.update(G.__dict__)
 
 
 class ObstructionGraph(nx.DiGraph):
