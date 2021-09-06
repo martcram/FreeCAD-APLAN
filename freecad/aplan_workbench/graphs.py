@@ -62,6 +62,10 @@ class ObstructionGraph(nx.DiGraph):
         fig.savefig(f'{file_loc}/{self.name}_{self.motion_direction.name}_obstruction_graph.png', dpi=dpi)
         nx.nx_agraph.write_dot(self, f'{file_loc}/{self.name}_{self.motion_direction.name}_obstruction_graph.dot')
 
+    def load(self, file_path):
+        G = nx.DiGraph(nx.nx_agraph.read_dot(file_path))
+        self.__dict__.update(G.__dict__)
+
 
 class MotionDirection(IntEnum):
     UNDEF = 0
