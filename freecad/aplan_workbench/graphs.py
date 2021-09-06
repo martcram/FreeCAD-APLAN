@@ -1,3 +1,4 @@
+from halp.directed_hypergraph import DirectedHypergraph
 import matplotlib.pyplot as plt
 from enum import IntEnum
 import networkx as nx
@@ -79,3 +80,8 @@ class MotionDirection(IntEnum):
     POS_Y = 2
     NEG_Z = -3
     POS_Z = 3
+
+
+class AndOrGraph(DirectedHypergraph):
+    def __init__(self):
+        super().__init__()
