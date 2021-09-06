@@ -85,3 +85,10 @@ class MotionDirection(IntEnum):
 class AndOrGraph(DirectedHypergraph):
     def __init__(self):
         super().__init__()
+
+    def add_edge(self, parent_subasm, child_subasms):
+        self.add_hyperedge([parent_subasm], set(child_subasms))
+    
+    def add_edges(self, edges):
+        for edge in edges:
+            self.add_edge(edge[0], edge[1])
