@@ -1,6 +1,7 @@
-from halp.directed_hypergraph import DirectedHypergraph
-import matplotlib.pyplot as plt
 from enum import IntEnum
+from halp.directed_hypergraph import DirectedHypergraph
+import itertools
+import matplotlib.pyplot as plt
 import networkx as nx
 import os
 
@@ -92,3 +93,26 @@ class AndOrGraph(DirectedHypergraph):
     def add_edges(self, edges):
         for edge in edges:
             self.add_edge(edge[0], edge[1])
+
+    def generate(self, connection_graph, obstruction_graphs):
+        nodes = connection_graph.nodes
+        self.__get_geometrical_constraints(nodes, obstruction_graphs)
+
+    def __get_geometrical_constraints(self, nodes, obstruction_graphs):
+        geometrical_constraints = {}
+        
+        for target in nodes:
+            target_successors = [obstruction_graph.successors(target) for obstruction_graph in obstruction_graphs]
+            obstructing_subasms = itertools.product(*target_successors)
+
+            obstructing_subasms_wo_dupl = []
+            for obstructing_subasm in obstructing_subasms:
+                obstructing_subasms_temp = list(set(obstructing_subasm)) # remove duplicate assembly components
+                obstructing_subasms_temp.sort()
+                if obstructing_subasms_temp not in obstructing_subasms_wo_dupl: # prevent duplicates from being added
+                    obstructing_subasms_wo_dupl.append(obstructing_subasms_temp)
+
+            if obstructing_subasms_wo_dupl:
+                geometrical_constraints[target] = obstructing_subasms_wo_dupl
+
+        return geometrical_constraints
