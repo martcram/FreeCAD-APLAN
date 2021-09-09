@@ -116,3 +116,10 @@ class AndOrGraph(DirectedHypergraph):
                 geometrical_constraints[target] = obstructing_subasms_wo_dupl
 
         return geometrical_constraints
+
+    def __check_geometrical_feasibility(subasm, geometrical_constraints):
+        for target, obstructing_subasms in geometrical_constraints.items():
+            for obstructing_subasm in obstructing_subasms:
+                if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
+                    return False
+        return True
