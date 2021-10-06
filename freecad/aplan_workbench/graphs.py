@@ -97,6 +97,11 @@ class AndOrGraph(DirectedHypergraph):
     def generate(self, connection_graph, obstruction_graphs):
         nodes = connection_graph.nodes
         geometrical_constraints = self.__get_geometrical_constraints(nodes, obstruction_graphs)
+        
+        subasm_sizes = {}
+        subasm_sizes[1] = [[node] for node in nodes]
+        subasm_sizes[2] = [list(edge) for edge in connection_graph.edges if self.__check_geometrical_feasibility(edge, geometrical_constraints)]
+        subasm_sizes[len(nodes)] = [sorted(nodes)]
 
     def __get_geometrical_constraints(self, nodes, obstruction_graphs):
         geometrical_constraints = {}
