@@ -103,6 +103,16 @@ class AndOrGraph(DirectedHypergraph):
         subasm_sizes[2] = [list(edge) for edge in connection_graph.edges if self.__check_geometrical_feasibility(edge, geometrical_constraints)]
         subasm_sizes[len(nodes)] = [sorted(nodes)]
 
+        # find all feasible (sub)assemblies by gradually increasing the subassembly size
+        neighbors = {node: self.__get_adjoining_components([node], connection_graph) for node in nodes}
+        for length in range(3, len(nodes)):
+            subasms = []
+            for subasm in subasm_sizes[length-1]:
+                subasm_neighbors = self.__get_adjoining_components(subasm, connection_graph)
+                new_subasms = [sorted(subasm + [neighbor]) for neighbor in subasm_neighbors]
+                subasms += filter(lambda subasm: (subasm not in subasms) and (self.__check_geometrical_feasibility(subasm, geometrical_constraints)), new_subasms)
+            subasm_sizes[length] = subasms
+
     def __get_adjoining_components(self, subasm, connection_graph):
         adjoining_components = []
         for component in subasm:
