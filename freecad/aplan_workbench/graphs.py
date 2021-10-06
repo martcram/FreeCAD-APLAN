@@ -3,6 +3,7 @@ from halp.directed_hypergraph import DirectedHypergraph
 import itertools
 import matplotlib.pyplot as plt
 import networkx as nx
+import math
 import os
 
 
@@ -137,6 +138,21 @@ class AndOrGraph(DirectedHypergraph):
                 new_subasms = [sorted(subasm + [neighbor]) for neighbor in subasm_neighbors]
                 subasms += filter(lambda subasm: (subasm not in subasms) and (self.__check_geometrical_feasibility(subasm, geometrical_constraints)), new_subasms)
             subasm_sizes[length] = subasms
+
+        # create triplets and compose AND-OR graph's edges
+        for triplet3_len in range(3, len(nodes)+1)[::-1]:
+            for triplet1_len in range(math.ceil(triplet3_len/2) , triplet3_len)[::-1]:
+                triplet2_len = triplet3_len - triplet1_len
+                triplets = itertools.product(subasm_sizes[triplet1_len], subasm_sizes[triplet2_len], subasm_sizes[triplet3_len])
+                for triplet in triplets:
+                    if self.__validate_triplet(triplet):
+                        parent_subasm = Subassembly(list(triplet[2]))
+                        child_subasm = [Subassembly(subasm) for subasm in triplet[0:2]]
+                        self.add_edge(parent_subasm, child_subasm)
+        
+        # add hyperedges of 2-component subassemblies
+        for subasm in subasm_sizes[2]:
+            self.add_edge(Subassembly(subasm), [Subassembly([subasm[0]]), Subassembly([subasm[1]])])
 
     def __get_adjoining_components(self, subasm, connection_graph):
         adjoining_components = []
