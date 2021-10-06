@@ -176,3 +176,8 @@ class AndOrGraph(DirectedHypergraph):
                 if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
                     return False
         return True
+
+    def __validate_triplet(self, triplet):
+        intersection = set(triplet[0]).intersection(set(triplet[1]))
+        union = set(triplet[0]).union(set(triplet[1]))
+        return intersection == set() and sorted(union) == sorted(triplet[2])
