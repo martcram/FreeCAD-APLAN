@@ -83,6 +83,31 @@ class MotionDirection(IntEnum):
     POS_Z = 3
 
 
+class Subassembly:
+    def __init__(self, components=[]):
+        self.components = sorted(list(set(components)))
+    
+    def get_components(self):
+        return self.components
+
+    def add_component(self, component):
+        if component not in self.components:
+            self.components.append(component)
+            self.components.sort()
+
+    def remove_component(self, component):
+        self.components.remove(component)
+
+    def __eq__(self, other):
+        return self.components == other.components
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(tuple(self.components))
+
+
 class AndOrGraph(DirectedHypergraph):
     def __init__(self):
         super().__init__()
