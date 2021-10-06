@@ -122,3 +122,10 @@ class AndOrGraph(DirectedHypergraph):
                 if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
                     return False
         return True
+
+    def __check_technical_feasibility(self, subasm, technical_constraints):
+        for target, obstructing_subasms in technical_constraints.items():
+            for obstructing_subasm in obstructing_subasms:
+                if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
+                    return False
+        return True
