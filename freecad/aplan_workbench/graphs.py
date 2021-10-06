@@ -96,7 +96,7 @@ class AndOrGraph(DirectedHypergraph):
 
     def generate(self, connection_graph, obstruction_graphs):
         nodes = connection_graph.nodes
-        self.__get_geometrical_constraints(nodes, obstruction_graphs)
+        geometrical_constraints = self.__get_geometrical_constraints(nodes, obstruction_graphs)
 
     def __get_geometrical_constraints(self, nodes, obstruction_graphs):
         geometrical_constraints = {}
@@ -107,8 +107,7 @@ class AndOrGraph(DirectedHypergraph):
 
             obstructing_subasms_wo_dupl = []
             for obstructing_subasm in obstructing_subasms:
-                obstructing_subasms_temp = list(set(obstructing_subasm)) # remove duplicate assembly components
-                obstructing_subasms_temp.sort()
+                obstructing_subasms_temp = sorted(list(set(obstructing_subasm))) # remove duplicate assembly components
                 if obstructing_subasms_temp not in obstructing_subasms_wo_dupl: # prevent duplicates from being added
                     obstructing_subasms_wo_dupl.append(obstructing_subasms_temp)
 
@@ -117,7 +116,7 @@ class AndOrGraph(DirectedHypergraph):
 
         return geometrical_constraints
 
-    def __check_geometrical_feasibility(subasm, geometrical_constraints):
+    def __check_geometrical_feasibility(self, subasm, geometrical_constraints):
         for target, obstructing_subasms in geometrical_constraints.items():
             for obstructing_subasm in obstructing_subasms:
                 if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
