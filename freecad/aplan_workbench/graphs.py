@@ -120,7 +120,7 @@ class AndOrGraph(DirectedHypergraph):
         for edge in edges:
             self.add_edge(edge[0], edge[1])
 
-    def generate(self, connection_graph, obstruction_graphs):
+    def generate(self, connection_graph, obstruction_graphs=[]):
         nodes = connection_graph.nodes
         geometrical_constraints = self.__get_geometrical_constraints(nodes, obstruction_graphs)
         
@@ -182,7 +182,9 @@ class AndOrGraph(DirectedHypergraph):
     def __check_geometrical_feasibility(self, subasm, geometrical_constraints):
         for target, obstructing_subasms in geometrical_constraints.items():
             for obstructing_subasm in obstructing_subasms:
-                if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
+                if not obstructing_subasm:
+                    return True
+                elif target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
                     return False
         return True
 
