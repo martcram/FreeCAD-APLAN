@@ -120,13 +120,13 @@ class AndOrGraph(DirectedHypergraph):
         for edge in edges:
             self.add_edge(edge[0], edge[1])
 
-    def generate(self, connection_graph, obstruction_graphs=[]):
+    def generate(self, connection_graph, obstruction_graphs=[], technical_constraints={}):
         nodes = connection_graph.nodes
         geometrical_constraints = self.__get_geometrical_constraints(nodes, obstruction_graphs)
         
         subasm_sizes = {}
         subasm_sizes[1] = [[node] for node in nodes]
-        subasm_sizes[2] = [list(edge) for edge in connection_graph.edges if self.__check_geometrical_feasibility(edge, geometrical_constraints)]
+        subasm_sizes[2] = [list(edge) for edge in connection_graph.edges if self.__check_geometrical_feasibility(edge, geometrical_constraints) and self.__check_technical_feasibility(edge, technical_constraints)]
         subasm_sizes[len(nodes)] = [sorted(nodes)]
 
         # find all feasible (sub)assemblies by gradually increasing the subassembly size
@@ -136,7 +136,7 @@ class AndOrGraph(DirectedHypergraph):
             for subasm in subasm_sizes[length-1]:
                 subasm_neighbors = self.__get_adjoining_components(subasm, connection_graph)
                 new_subasms = [sorted(subasm + [neighbor]) for neighbor in subasm_neighbors]
-                subasms += filter(lambda subasm: (subasm not in subasms) and (self.__check_geometrical_feasibility(subasm, geometrical_constraints)), new_subasms)
+                subasms += filter(lambda subasm: (subasm not in subasms) and (self.__check_geometrical_feasibility(subasm, geometrical_constraints) and self.__check_technical_feasibility(subasm, technical_constraints)), new_subasms)
             subasm_sizes[length] = subasms
 
         # create triplets and compose AND-OR graph's edges
@@ -191,6 +191,8 @@ class AndOrGraph(DirectedHypergraph):
     def __check_technical_feasibility(self, subasm, technical_constraints):
         for target, obstructing_subasms in technical_constraints.items():
             for obstructing_subasm in obstructing_subasms:
+                if not obstructing_subasm:
+                    return True
                 if target not in subasm and (set(obstructing_subasm).issubset(set(subasm))):
                     return False
         return True
