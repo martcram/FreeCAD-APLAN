@@ -101,6 +101,9 @@ class Subassembly:
     def remove_component(self, component):
         self.components.remove(component)
 
+    def __str__(self) -> str:
+        return "[" + ", ".join(self.components) + "]"
+
     def __eq__(self, other):
         return self.components == other.components
 
@@ -205,6 +208,7 @@ class AndOrGraph(DirectedHypergraph):
         return intersection == set() and sorted(union) == sorted(triplet[2])
     
     def visualize(self, file_loc):
+        graph_name = "and-or_graph"
         subasm_ids = {subasm: index for index, subasm in enumerate(self.node_iterator())}
 
         subasm_sizes = {}
@@ -216,7 +220,7 @@ class AndOrGraph(DirectedHypergraph):
             else:
                 subasm_sizes[subasm_size] = [subasm_id]
 
-        d = graphviz.Digraph(filename="and-or_graph.dot", directory=file_loc, format="png")
+        d = graphviz.Digraph(filename="{}.dot".format(graph_name), directory=file_loc, format="png")
         
         for subasm_size in subasm_sizes.keys():
             with d.subgraph() as s:
@@ -246,3 +250,8 @@ class AndOrGraph(DirectedHypergraph):
                         d.edge(str(tail_subasm_id), str(head_subasm_id), color="/{}/{}".format(color_scheme, color_id))
 
         d.render()
+
+        dot_file = open("{}/{}.dot".format(file_loc, graph_name), "a")
+        for subasm, id in subasm_ids.items():
+            dot_file.writelines("\n// {} >> {}".format(id, subasm))
+        dot_file.close()
