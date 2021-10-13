@@ -1,10 +1,12 @@
 from enum import IntEnum
+import graphviz
 from halp.directed_hypergraph import DirectedHypergraph
 import itertools
+import math
 import matplotlib.pyplot as plt
 import networkx as nx
-import math
 import os
+import random
 
 
 class ConnectionGraph(nx.Graph):
@@ -201,3 +203,46 @@ class AndOrGraph(DirectedHypergraph):
         intersection = set(triplet[0]).intersection(set(triplet[1]))
         union = set(triplet[0]).union(set(triplet[1]))
         return intersection == set() and sorted(union) == sorted(triplet[2])
+    
+    def visualize(self, file_loc):
+        subasm_ids = {subasm: index for index, subasm in enumerate(self.node_iterator())}
+
+        subasm_sizes = {}
+        for subasm in self.node_iterator():
+            subasm_size = len(subasm.get_components())
+            subasm_id = subasm_ids[subasm]
+            if subasm_sizes.get(subasm_size):
+                subasm_sizes[subasm_size].append(subasm_id)
+            else:
+                subasm_sizes[subasm_size] = [subasm_id]
+
+        d = graphviz.Digraph(filename="and-or_graph.dot", directory=file_loc, format="png")
+        
+        for subasm_size in subasm_sizes.keys():
+            with d.subgraph() as s:
+                s.attr(rank='same')
+                for subasm_id in subasm_sizes[subasm_size]:
+                    if subasm_size == 1:
+                        s.node(str(subasm_id), shape="circle", style="filled", fillcolor="gold")
+                    elif subasm_size == max(subasm_sizes.keys()):
+                        s.node(str(subasm_id), shape="doublecircle")
+                    else:
+                        s.node(str(subasm_id), shape="circle")
+
+        color_scheme = "dark28"
+        for tail_subasm in self.node_iterator():
+            color_ids = list(range(1, 9))
+            for hyperedge_id in self.hyperedge_id_iterator():
+                if tail_subasm == self.get_hyperedge_tail(hyperedge_id).pop():
+                    color_id = random.choice(color_ids)
+                    color_ids.remove(color_id)
+
+                    tail_subasm_id = subasm_ids[tail_subasm]
+                    
+                    head_subasms = self.get_hyperedge_head(hyperedge_id)
+                    head_subasm_ids = [subasm_ids[head_subasm] for head_subasm in head_subasms]
+                    
+                    for head_subasm_id in head_subasm_ids:
+                        d.edge(str(tail_subasm_id), str(head_subasm_id), color="/{}/{}".format(color_scheme, color_id))
+
+        d.render()
