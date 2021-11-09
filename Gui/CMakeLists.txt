@@ -30,6 +30,8 @@ SET(AplanGui_SRCS_ViewProvider
 SOURCE_GROUP("ViewProvider" FILES ${AplanGui_SRCS_ViewProvider})
 
 SET(AplanGui_SRCS_Module
+    ActiveAnalysisObserver.cpp
+    ActiveAnalysisObserver.hpp
     AppAplanGui.cpp
     AppAplanGuiPy.cpp
     Command.cpp
