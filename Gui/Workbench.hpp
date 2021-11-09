@@ -38,6 +38,11 @@ namespace AplanGui
         Workbench();
         virtual ~Workbench();
 
+        // Run some actions when the workbench gets activated.
+        virtual void activated();
+        // Run some actions when the workbench gets deactivated.
+        virtual void deactivated();
+
     protected:
         Gui::MenuItem *setupMenuBar() const;
         Gui::ToolBarItem *setupToolBars() const;

@@ -52,10 +52,42 @@ void CmdAplanTest::activated(int)
     Base::Console().Message("Hello, World!\n");
 }
 //================================================================================================
+DEF_STD_CMD_A(CmdAplanAnalysis)
+
+CmdAplanAnalysis::CmdAplanAnalysis()
+    : Command("APLAN_Analysis")
+{
+    sAppModule = "Aplan";
+    sGroup = QT_TR_NOOP("Aplan");
+    sMenuText = QT_TR_NOOP("Analysis container");
+    sToolTipText = QT_TR_NOOP("Creates an APLAN analysis container with a standard solver");
+    sWhatsThis = "APLAN_Analysis";
+    sStatusTip = sToolTipText;
+    sPixmap = "APLAN_Analysis";
+    sAccel = "S, A";
+}
+
+void CmdAplanAnalysis::activated(int)
+{
+    std::string analysisName = getUniqueObjectName("Analysis");
+    openCommand(QT_TRANSLATE_NOOP("Command", "Create an APLAN analysis container"));
+    addModule(Doc, "AplanGui");
+    addModule(Doc, "ObjectsAplan");
+    doCommand(Doc, "ObjectsAplan.makeAnalysis(FreeCAD.ActiveDocument, \"%s\")", analysisName.c_str());
+    doCommand(Doc, "AplanGui.setActiveAnalysis(FreeCAD.ActiveDocument.ActiveObject)");
+    updateActive();
+}
+
+bool CmdAplanAnalysis::isActive(void)
+{
+    return Gui::Application::Instance->activeDocument();
+}
+//================================================================================================
 
 void CreateAplanCommands(void)
 {
     Gui::CommandManager &rcCmdMgr = Gui::Application::Instance->commandManager();
 
-    rcCmdMgr.addCommand(new CmdAplanTest());
+    // rcCmdMgr.addCommand(new CmdAplanTest());
+    rcCmdMgr.addCommand(new CmdAplanAnalysis());
 }

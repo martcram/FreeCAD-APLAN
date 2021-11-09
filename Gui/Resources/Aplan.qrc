@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource>
         <!-- gui command icons -->
+        <file>icons/APLAN_Analysis.svg</file>
 
     </qresource>
 </RCC> 

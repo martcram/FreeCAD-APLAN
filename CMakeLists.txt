@@ -16,6 +16,7 @@ endif(BUILD_GUI)
 SET(AplanBaseModules_SRCS
     Init.py
     InitGui.py
+    ObjectsAplan.py
 )
 
 SET(AplanCommands_SRCS

@@ -32,6 +32,7 @@
 #include <Gui/Application.h>
 #include <Gui/Language/Translator.h>
 
+#include "ViewProviderAnalysis.hpp"
 #include "Workbench.hpp"
 
 void CreateAplanCommands(void);
@@ -65,6 +66,9 @@ PyMOD_INIT_FUNC(AplanGui)
 
     // addition objects
     AplanGui::Workbench::init();
+
+    AplanGui::ViewProviderAplanAnalysis::init();
+    AplanGui::ViewProviderAplanAnalysisPython::init();
 
     // add resources and reloads the translators
     loadAplanResource();

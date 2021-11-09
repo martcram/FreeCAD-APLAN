@@ -32,6 +32,8 @@
 
 #include <CXX/Extensions.hxx>
 
+#include "AplanAnalysis.hpp"
+
 namespace Aplan
 {
     extern PyObject *initModule();
@@ -42,6 +44,12 @@ PyMOD_INIT_FUNC(Aplan)
 {
     PyObject *mod = Aplan::initModule();
     Base::Console().Log("Loading the APLAN module... done\n");
+
+    Aplan::DocumentObject::init();
+    Aplan::FeaturePython::init();
+
+    Aplan::AplanAnalysis::init();
+    Aplan::AplanAnalysisPython::init();
 
     PyMOD_Return(mod);
 }

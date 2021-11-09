@@ -28,9 +28,11 @@
 #include <qobject.h>
 #endif
 
-#include "Workbench.hpp"
 #include <Gui/MenuManager.h>
 #include <Gui/ToolBarManager.h>
+
+#include "ActiveAnalysisObserver.hpp"
+#include "Workbench.hpp"
 
 using namespace AplanGui;
 
@@ -53,6 +55,17 @@ Workbench::~Workbench()
 {
 }
 
+void Workbench::activated()
+{
+    Gui::Workbench::activated();
+}
+
+void Workbench::deactivated()
+{
+    AplanGui::ActiveAnalysisObserver::instance()->unsetActiveObject();
+    Gui::Workbench::deactivated();
+}
+
 Gui::MenuItem *Workbench::setupMenuBar() const
 {
     Gui::MenuItem *root = StdWorkbench::setupMenuBar();
@@ -61,6 +74,8 @@ Gui::MenuItem *Workbench::setupMenuBar() const
     Gui::MenuItem *model = new Gui::MenuItem;
     root->insertItem(item, model);
     model->setCommand("M&odel");
+    *model << "APLAN_Analysis"
+           << "Separator";
 
     return root;
 }
@@ -71,8 +86,9 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
 
     Gui::ToolBarItem *model = new Gui::ToolBarItem(root);
     model->setCommand("Model");
-    *model << "APLAN_ToggleTransparency"
-           << "APLAN_Test";
+    *model << "APLAN_Analysis"
+           << "Separator"
+           << "APLAN_ToggleTransparency";
 
     return root;
 }
