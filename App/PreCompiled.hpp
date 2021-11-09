@@ -31,12 +31,10 @@
 #ifdef FC_OS_WIN32
 #define AplanAppExport __declspec(dllexport)
 #define AplanExport __declspec(dllexport)
-#define BaseExport     __declspec(dllimport)
 #define PartExport __declspec(dllimport)
 #else // for Linux
 #define AplanAppExport
 #define AplanExport
-#define BaseExport
 #define PartExport
 #endif
 
