@@ -2,6 +2,8 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v2.1-blue.svg)](https://www.gnu.org/licenses/lgpl-2.1)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-round)](https://github.com/martcram/FreeCAD-APLAN/pulls)
 
+The APLAN workbench is currently being extended to a C++/Python workbench under the ```cpp_py_wb``` branch.
+
 ## Setup
 These instructions will help you get the APLAN workbench up and running on your local machine. 
 
