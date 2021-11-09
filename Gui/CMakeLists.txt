@@ -23,6 +23,12 @@ else()
 endif()
 SOURCE_GROUP("Resources" FILES ${AplanResource_SRCS})
 
+SET(AplanGui_SRCS_ViewProvider
+    ViewProviderAnalysis.cpp
+    ViewProviderAnalysis.hpp
+)
+SOURCE_GROUP("ViewProvider" FILES ${AplanGui_SRCS_ViewProvider})
+
 SET(AplanGui_SRCS_Module
     AppAplanGui.cpp
     AppAplanGuiPy.cpp
@@ -37,6 +43,7 @@ SOURCE_GROUP("Module" FILES ${AplanGui_SRCS_Module})
 
 SET(AplanGui_SRCS
     ${AplanResource_SRCS}
+    ${AplanGui_SRCS_ViewProvider}
     ${AplanGui_SRCS_Module}
 )
 

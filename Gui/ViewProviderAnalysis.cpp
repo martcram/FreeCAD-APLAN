@@ -1,0 +1,171 @@
+/***************************************************************************
+ *                                                                         *
+ *   Copyright (c) 2013 Jürgen Riegel <FreeCAD@juergen-riegel.net>         *
+ *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+ *                                                                         *
+ *   This file is part of the FreeCAD CAx development system.              *
+ *                                                                         *
+ *   This library is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU Library General Public           *
+ *   License as published by the Free Software Foundation; either          *
+ *   version 2 of the License, or (at your option) any later version.      *
+ *                                                                         *
+ *   This library  is distributed in the hope that it will be useful,      *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Library General Public License for more details.                  *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this library; see the file COPYING.LIB. If not,    *
+ *   write to the Free Software Foundation, Inc., 59 Temple Place,         *
+ *   Suite 330, Boston, MA  02111-1307, USA                                *
+ *                                                                         *
+ ***************************************************************************/
+
+#include "PreCompiled.hpp"
+
+#ifndef _PreComp_
+#include <boost_bind_bind.hpp>
+#include <QAction>
+#include <QMenu>
+#endif
+
+#include <Gui/ActionFunction.h>
+#include <Gui/Command.h>
+#include <Gui/Control.h>
+
+#include <Mod/Aplan/App/AplanAnalysis.hpp>
+#include "ViewProviderAnalysis.hpp"
+
+using namespace AplanGui;
+
+/* TRANSLATOR AplanGui::ViewProviderAplanAnalysis */
+
+PROPERTY_SOURCE(AplanGui::ViewProviderAplanAnalysis, Gui::ViewProviderDocumentObjectGroup)
+
+ViewProviderAplanAnalysis::ViewProviderAplanAnalysis()
+{
+    sPixmap = "APLAN_Analysis";
+}
+
+ViewProviderAplanAnalysis::~ViewProviderAplanAnalysis()
+{
+}
+
+bool ViewProviderAplanAnalysis::doubleClicked(void)
+{
+    Gui::Command::assureWorkbench("AplanWorkbench");
+    Gui::Command::addModule(Gui::Command::Gui, "AplanGui");
+    Gui::Command::doCommand(Gui::Command::Gui, "AplanGui.setActiveAnalysis(App.activeDocument().%s)", this->getObject()->getNameInDocument());
+    return true;
+}
+
+std::vector<App::DocumentObject *> ViewProviderAplanAnalysis::claimChildren(void) const
+{
+    return Gui::ViewProviderDocumentObjectGroup::claimChildren();
+}
+
+bool ViewProviderAplanAnalysis::canDelete(App::DocumentObject *obj) const
+{
+    Q_UNUSED(obj)
+    return true;
+}
+
+std::vector<std::string> ViewProviderAplanAnalysis::getDisplayModes(void) const
+{
+    return {"Analysis"};
+}
+
+void ViewProviderAplanAnalysis::hide(void)
+{
+    Gui::ViewProviderDocumentObjectGroup::hide();
+}
+
+void ViewProviderAplanAnalysis::show(void)
+{
+    Gui::ViewProviderDocumentObjectGroup::show();
+}
+
+void ViewProviderAplanAnalysis::setupContextMenu(QMenu *menu, QObject *, const char *)
+{
+    Gui::ActionFunction *func = new Gui::ActionFunction(menu);
+    QAction *act = menu->addAction(tr("Activate analysis"));
+    func->trigger(act, boost::bind(&ViewProviderAplanAnalysis::doubleClicked, this));
+}
+
+bool ViewProviderAplanAnalysis::setEdit(int ModNum)
+{
+    if (ModNum == ViewProvider::Default)
+    {
+        return false;
+    }
+    else
+    {
+        return Gui::ViewProviderDocumentObjectGroup::setEdit(ModNum);
+    }
+}
+
+void ViewProviderAplanAnalysis::unsetEdit(int ModNum)
+{
+    if (ModNum == ViewProvider::Default)
+    {
+        // when pressing ESC make sure to close the dialog
+        Gui::Control().closeDialog();
+    }
+    else
+    {
+        Gui::ViewProviderDocumentObjectGroup::unsetEdit(ModNum);
+    }
+}
+
+bool ViewProviderAplanAnalysis::onDelete(const std::vector<std::string> &)
+{
+    return true;
+}
+
+bool ViewProviderAplanAnalysis::canDragObjects() const
+{
+    return true;
+}
+
+bool ViewProviderAplanAnalysis::canDragObject(App::DocumentObject *obj) const
+{
+    if (!obj)
+        return false;
+    else if (obj->getTypeId().isDerivedFrom(Base::Type::fromName("Aplan::FeaturePython")))
+        return true;
+    else
+        return false;
+}
+
+void ViewProviderAplanAnalysis::dragObject(App::DocumentObject *obj)
+{
+    ViewProviderDocumentObjectGroup::dragObject(obj);
+}
+
+bool ViewProviderAplanAnalysis::canDropObjects() const
+{
+    return true;
+}
+
+bool ViewProviderAplanAnalysis::canDropObject(App::DocumentObject *obj) const
+{
+    return canDragObject(obj);
+}
+
+void ViewProviderAplanAnalysis::dropObject(App::DocumentObject *obj)
+{
+    ViewProviderDocumentObjectGroup::dropObject(obj);
+}
+
+// Python feature -----------------------------------------------------------------------
+
+namespace Gui
+{
+    /// @cond DOXERR
+    PROPERTY_SOURCE_TEMPLATE(AplanGui::ViewProviderAplanAnalysisPython, AplanGui::ViewProviderAplanAnalysis)
+    /// @endcond
+
+    // explicit template instantiation
+    template class AplanGuiExport ViewProviderPythonFeatureT<ViewProviderAplanAnalysis>;
+}
