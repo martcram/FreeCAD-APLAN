@@ -73,6 +73,13 @@ class CommandManager(object):
             )
         return active
 
+    def Activated(self):
+        if self.do_activated == "add_obj_on_gui_noset_edit":
+            self.add_obj_on_gui_noset_edit(self.__class__.__name__.lstrip("_"))
+        elif self.do_activated == "add_obj_on_gui_set_edit":
+            self.add_obj_on_gui_set_edit(self.__class__.__name__.lstrip("_"))
+        # in all other cases Activated is implemented it the command class
+
     def active_analysis_in_active_doc(self) -> bool:
         analysis = AplanGui.getActiveAnalysis()
         if analysis.Document is FreeCAD.ActiveDocument:
@@ -80,3 +87,48 @@ class CommandManager(object):
             return True
         else:
             return False
+
+    # ****************************************************************************************
+    # methods to add the objects to the document in FreeCADGui mode
+
+    def add_obj_on_gui_set_edit(self, obj_type):
+        FreeCAD.ActiveDocument.openTransaction(
+            "Create Aplan{}"
+            .format(obj_type)
+        )
+        FreeCADGui.addModule(
+            "ObjectsAplan"
+        )
+        FreeCADGui.addModule(
+            "AplanGui"
+        )
+        FreeCADGui.doCommand(
+            "AplanGui.getActiveAnalysis().addObject(ObjectsAplan."
+            "make{}(FreeCAD.ActiveDocument))"
+            .format(obj_type)
+        )
+        # no other obj should be selected if we go in task panel
+        FreeCADGui.Selection.clearSelection()
+        FreeCADGui.doCommand(
+            "FreeCADGui.ActiveDocument.setEdit(FreeCAD.ActiveDocument.ActiveObject.Name)"
+        )
+        FreeCAD.ActiveDocument.recompute()
+
+    def add_obj_on_gui_noset_edit(self, obj_type) -> None:
+        FreeCAD.ActiveDocument.openTransaction(
+            "Create Aplan{}"
+            .format(obj_type)
+        )
+        FreeCADGui.addModule(
+            "ObjectsAplan"
+        )
+        FreeCADGui.addModule(
+            "AplanGui"
+        )
+        FreeCADGui.doCommand(
+            "AplanGui.getActiveAnalysis().addObject(ObjectsAplan."
+            "make{}(FreeCAD.ActiveDocument))"
+            .format(obj_type)
+        )
+        # no clear selection is done
+        FreeCAD.ActiveDocument.recompute()
