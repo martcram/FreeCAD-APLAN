@@ -88,7 +88,8 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     model->setCommand("Model");
     *model << "APLAN_Analysis"
            << "Separator"
-           << "APLAN_ToggleTransparency";
+           << "APLAN_ToggleTransparency"
+           << "APLAN_TopoConstraints";
 
     return root;
 }
