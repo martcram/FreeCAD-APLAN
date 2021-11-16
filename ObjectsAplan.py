@@ -33,6 +33,14 @@ __url__ = "https://www.freecadweb.org"
 # ********* analysis objects ************************************************
 def makeAnalysis(doc, name="Analysis"):
     """makeAnalysis(document, [name]):
-    makes a APLAN analysis object"""
+    makes an APLAN analysis object"""
     obj = doc.addObject("Aplan::AplanAnalysis", name)
+    return obj
+
+# ********* constraint objects **********************************************
+def makeTopoConstraints(doc, name="TopoConstraints"):
+    """makeTopoConstraints(document, [name]):
+    makes an APLAN TopoConstraints object"""
+    import aplanobjects.topo_constraints
+    obj = aplanobjects.topo_constraints.create(doc, name)
     return obj
