@@ -66,4 +66,17 @@ class CommandManager(object):
             active = True
         elif self.is_active == "with_document":
             active = FreeCADGui.ActiveDocument is not None
+        elif self.is_active == "with_analysis":
+            active = (
+                AplanGui.getActiveAnalysis() is not None
+                and self.active_analysis_in_active_doc()
+            )
         return active
+
+    def active_analysis_in_active_doc(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        if analysis.Document is FreeCAD.ActiveDocument:
+            self.active_analysis = analysis
+            return True
+        else:
+            return False
