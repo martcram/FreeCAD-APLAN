@@ -35,7 +35,7 @@ __url__ = "https://www.freecadweb.org"
 
 class BaseAplanPythonObject:
     
-    BaseType = "Aplan::BaseAplanPythonObject"
+    BaseType = "App::FeaturePython"
 
     def __init__(self, obj):
         obj.Proxy = self 
