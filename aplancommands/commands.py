@@ -29,6 +29,8 @@ __url__ = "https://www.freecadweb.org"
 
 import FreeCAD
 import FreeCADGui
+from FreeCAD import Qt
+
 from .manager import CommandManager
 
 # Python command definitions
@@ -55,4 +57,22 @@ class _ToggleTransparency(CommandManager):
                 part.ViewObject.Transparency = 80
 
 
+class _TopoConstraints(CommandManager):
+    "Computes the topological constraints of the selected parts"
+
+    def __init__(self):
+        super(_TopoConstraints, self).__init__()
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_TopoConstraints",
+            "Topological constraints"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_TopoConstraints",
+            "Computes the topological constraints of the selected parts"
+        )
+        self.is_active = "with_analysis"
+        self.do_activated = "add_obj_on_gui_set_edit"
+
+
 FreeCADGui.addCommand("APLAN_ToggleTransparency", _ToggleTransparency())
+FreeCADGui.addCommand("APLAN_TopoConstraints", _TopoConstraints())
