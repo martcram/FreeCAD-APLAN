@@ -25,9 +25,16 @@ SET(AplanCommands_SRCS
     aplancommands/manager.py
 )
 
+SET(AplanObjects_SRCS
+    aplanobjects/__init__.py
+    aplanobjects/base_aplanpythonobject.py
+    aplanobjects/topo_constraints.py
+)
+
 SET(AplanAllScripts
     ${AplanBaseModules_SRCS}
     ${AplanCommands_SRCS}
+    ${AplanObjects_SRCS}
 )
 
 ADD_CUSTOM_TARGET(AplanScriptsTarget ALL
@@ -39,10 +46,28 @@ fc_copy_sources(AplanScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllScr
 # install directories for Python packages (for make install)
 INSTALL(FILES ${AplanBaseModules_SRCS} DESTINATION Mod/Aplan)
 INSTALL(FILES ${AplanCommands_SRCS} DESTINATION Mod/Aplan/aplancommands)
+INSTALL(FILES ${AplanObjects_SRCS} DESTINATION Mod/Aplan/aplanobjects)
 
 
 # ************************************************************************************************
 # ****** Python Gui packages and modules *********************************************************
 # ************************************************************************************************
 
+SET(AplanGuiViewProvider_SRCS
+    aplanviewprovider/__init__.py
+    aplanviewprovider/view_topo_constraints.py
+)
 
+SET(AplanAllGuiScripts
+    ${AplanGuiViewProvider_SRCS}
+)
+
+if(BUILD_GUI)
+    ADD_CUSTOM_TARGET(AplanGuiScriptsTarget ALL
+        SOURCES ${AplanAllGuiScripts}
+    )
+    fc_copy_sources(AplanGuiScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllGuiScripts})
+
+    # install directories for Python packages (for make install)
+    INSTALL(FILES ${AplanGuiViewProvider_SRCS} DESTINATION Mod/Aplan/aplanviewprovider/)
+endif(BUILD_GUI)
