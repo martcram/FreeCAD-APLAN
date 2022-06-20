@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (c) 2013 Jürgen Riegel <FreeCAD@juergen-riegel.net>         *
- *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+ *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -33,9 +33,13 @@
 #include <Gui/ActionFunction.h>
 #include <Gui/Command.h>
 #include <Gui/Control.h>
+#include <Gui/TaskView/TaskDialog.h>
+#include <Gui/ViewProvider.h>
+#include <Gui/ViewProviderDocumentObjectGroup.h>
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
-#include "ViewProviderAnalysis.hpp"
+#include <Mod/Aplan/Gui/TaskAplanAnalysis.hpp>
+#include <Mod/Aplan/Gui/ViewProviderAnalysis.hpp>
 
 using namespace AplanGui;
 
@@ -54,6 +58,7 @@ ViewProviderAplanAnalysis::~ViewProviderAplanAnalysis()
 
 bool ViewProviderAplanAnalysis::doubleClicked(void)
 {
+    this->setEdit(ViewProvider::Default);
     Gui::Command::assureWorkbench("AplanWorkbench");
     Gui::Command::addModule(Gui::Command::Gui, "AplanGui");
     Gui::Command::doCommand(Gui::Command::Gui, "AplanGui.setActiveAnalysis(App.activeDocument().%s)", this->getObject()->getNameInDocument());
@@ -97,6 +102,24 @@ bool ViewProviderAplanAnalysis::setEdit(int ModNum)
 {
     if (ModNum == ViewProvider::Default)
     {
+        // Base::Console().Message("\n");
+        Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
+        TaskDlgAplanAnalysis *analysisDlg = qobject_cast<TaskDlgAplanAnalysis *>(dlg);
+        if (analysisDlg && analysisDlg->getAnalysisView() != this)
+            analysisDlg = 0; // another Analysis left open its task panel
+
+        // clear the selection (convenience)
+        Gui::Selection().clearSelection();
+
+        // start the edit dialog
+        if (analysisDlg)
+        {
+            Gui::Control().showDialog(analysisDlg);
+        }
+        else
+        {
+            Gui::Control().showDialog(new TaskDlgAplanAnalysis(this));
+        }
         return false;
     }
     else

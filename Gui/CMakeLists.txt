@@ -16,6 +16,29 @@ set(AplanGui_LIBS
     FreeCADGui
 )
 
+set(AplanGui_MOC_HDRS
+    TaskAplanAnalysis.hpp
+)
+fc_wrap_cpp(AplanGui_MOC_SRCS ${AplanGui_MOC_HDRS})
+SOURCE_GROUP("Moc" FILES ${AplanGui_MOC_SRCS})
+
+SET(AplanGui_UIC_SRCS
+    TaskAplanAnalysis.ui
+)
+if(BUILD_QT5)
+    qt5_wrap_ui(AplanGui_UIC_HDRS ${AplanGui_UIC_SRCS})
+else()
+    qt4_wrap_ui(AplanGui_UIC_HDRS ${AplanGui_UIC_SRCS})
+endif()
+
+SET(AplanGui_DLG_SRCS
+    ${AplanGui_UIC_HDRS}
+    TaskAplanAnalysis.ui
+    TaskAplanAnalysis.cpp
+    TaskAplanAnalysis.hpp
+)
+SOURCE_GROUP("Dialogs" FILES ${AplanGui_DLG_SRCS})
+ 
 if (BUILD_QT5)
     qt5_add_resources(AplanResource_SRCS Resources/Aplan.qrc)
 else()
@@ -45,8 +68,9 @@ SOURCE_GROUP("Module" FILES ${AplanGui_SRCS_Module})
 
 SET(AplanGui_SRCS
     ${AplanResource_SRCS}
-    ${AplanGui_SRCS_ViewProvider}
     ${AplanGui_SRCS_Module}
+    ${AplanGui_SRCS_ViewProvider}
+    ${AplanGui_DLG_SRCS}
 )
 
 SET(AplanGuiIcon_SVG
