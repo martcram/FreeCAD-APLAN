@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (c) 2013 Jürgen Riegel <FreeCAD@juergen-riegel.net>         *
- *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+ *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -25,8 +25,12 @@
 #ifndef APLAN_APLANANALYSIS_HPP
 #define APLAN_APLANANALYSIS_HPP
 
+#include "PreCompiled.hpp"
+
+#include <App/DocumentObject.h>
 #include <App/DocumentObjectGroup.h>
 #include <App/FeaturePython.h>
+#include <App/PropertyStandard.h>
 
 namespace Aplan
 {
@@ -39,6 +43,7 @@ namespace Aplan
         virtual ~AplanAnalysis();
 
         App::PropertyUUID Uid;
+        App::PropertyString WorkingDir;
 
         virtual const char *getViewProviderName() const
         {
