@@ -49,6 +49,8 @@ SOURCE_GROUP("Resources" FILES ${AplanResource_SRCS})
 SET(AplanGui_SRCS_ViewProvider
     ViewProviderAnalysis.cpp
     ViewProviderAnalysis.hpp
+    ViewProviderPartFilter.cpp
+    ViewProviderPartFilter.hpp
 )
 SOURCE_GROUP("ViewProvider" FILES ${AplanGui_SRCS_ViewProvider})
 
