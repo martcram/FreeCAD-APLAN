@@ -52,6 +52,8 @@ SET(AplanGui_SRCS_ViewProvider
     ViewProviderAnalysis.hpp
     ViewProviderCompound.cpp
     ViewProviderCompound.hpp
+    ViewProviderCompoundGroup.hpp
+    ViewProviderCompoundGroup.cpp
     ViewProviderPartFilter.cpp
     ViewProviderPartFilter.hpp
 )

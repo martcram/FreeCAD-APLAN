@@ -34,7 +34,9 @@
 
 #include <Mod/Aplan/Gui/ViewProviderAnalysis.hpp>
 #include <Mod/Aplan/Gui/ViewProviderPartFilter.hpp>
-#include "Workbench.hpp"
+#include <Mod/Aplan/Gui/ViewProviderCompound.hpp>
+#include <Mod/Aplan/Gui/ViewProviderCompoundGroup.hpp>
+#include <Mod/Aplan/Gui/Workbench.hpp>
 
 void CreateAplanCommands(void);
 
@@ -70,6 +72,12 @@ PyMOD_INIT_FUNC(AplanGui)
 
     AplanGui::ViewProviderAplanAnalysis::init();
     AplanGui::ViewProviderAplanAnalysisPython::init();
+
+    AplanGui::ViewProviderCompound::init();
+    AplanGui::ViewProviderCompoundPython::init();
+
+    AplanGui::ViewProviderCompoundGroup::init();
+    AplanGui::ViewProviderCompoundGroupPython::init();
 
     AplanGui::ViewProviderPartFilter::init();
     AplanGui::ViewProviderPartFilterPython::init();
