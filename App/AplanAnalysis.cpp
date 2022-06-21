@@ -24,9 +24,6 @@
 
 #include "PreCompiled.hpp"
 
-#ifndef _PreComp_
-#endif
-
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
 #include <App/DocumentObjectGroup.h>
@@ -37,6 +34,7 @@
 #include <Base/Uuid.h>
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
+#include <Mod/Aplan/App/AplanAnalysisPy.h>
 
 using namespace Aplan;
 using namespace App;
@@ -52,6 +50,29 @@ AplanAnalysis::AplanAnalysis()
 
 AplanAnalysis::~AplanAnalysis()
 {
+}
+
+PyObject *AplanAnalysis::getPyObject()
+{
+    if (PythonObject.is(Py::_None()))
+    {
+        // ref counter is set to 1
+        PythonObject = Py::Object(new AplanAnalysisPy(this), true);
+    }
+    return Py::new_reference_to(PythonObject);
+}
+
+std::vector<Aplan::PartFilter *> AplanAnalysis::getPartFilterObjects(void) const
+{
+    std::vector<Aplan::PartFilter *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::PartFilter::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::PartFilter *>(obj));
+        }
+    }
+    return objects;
 }
 
 // Dummy class 'DocumentObject' in Aplan namespace
