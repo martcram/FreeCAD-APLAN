@@ -31,10 +31,16 @@ SET(AplanObjects_SRCS
     aplanobjects/topo_constraints.py
 )
 
+SET(AplanTools_SRCS
+    aplantools/__init__.py
+    aplantools/aplanutils.py
+)
+
 SET(AplanAllScripts
     ${AplanBaseModules_SRCS}
     ${AplanCommands_SRCS}
     ${AplanObjects_SRCS}
+    ${AplanTools_SRCS}
 )
 
 ADD_CUSTOM_TARGET(AplanScriptsTarget ALL
@@ -47,6 +53,7 @@ fc_copy_sources(AplanScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllScr
 INSTALL(FILES ${AplanBaseModules_SRCS} DESTINATION Mod/Aplan)
 INSTALL(FILES ${AplanCommands_SRCS} DESTINATION Mod/Aplan/aplancommands)
 INSTALL(FILES ${AplanObjects_SRCS} DESTINATION Mod/Aplan/aplanobjects)
+INSTALL(FILES ${AplanTools_SRCS} DESTINATION Mod/Aplan/aplantools)
 
 
 # ************************************************************************************************
