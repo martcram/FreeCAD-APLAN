@@ -28,6 +28,7 @@ SET(AplanCommands_SRCS
 SET(AplanObjects_SRCS
     aplanobjects/__init__.py
     aplanobjects/base_aplanpythonobject.py
+    aplanobjects/part_filter.py
     aplanobjects/topo_constraints.py
 )
 
@@ -62,6 +63,7 @@ INSTALL(FILES ${AplanTools_SRCS} DESTINATION Mod/Aplan/aplantools)
 
 SET(AplanGuiViewProvider_SRCS
     aplanviewprovider/__init__.py
+    aplanviewprovider/view_part_filter.py
     aplanviewprovider/view_topo_constraints.py
 )
 
