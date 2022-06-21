@@ -87,6 +87,22 @@ fc_copy_sources(AplanGui "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Mod/Aplan
 INSTALL(FILES ${AplanGuiIcon_SVG} DESTINATION "${CMAKE_INSTALL_DATADIR}/Mod/Aplan/Resources/icons")
 
 
+# Python modules ui files, they are copied as they are, thus need not to be added to Aplan.qrc
+# see https://forum.freecadweb.org/viewtopic.php?f=10&t=25833
+SET(AplanGuiPythonUI_SRCS
+    Resources/ui/ExcludeParts.ui
+    Resources/ui/GroupParts.ui
+)
+
+ADD_CUSTOM_TARGET(AplanPythonUi ALL
+    SOURCES ${AplanGuiPythonUI_SRCS}
+)
+
+fc_copy_sources(AplanPythonUi "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanGuiPythonUI_SRCS})
+
+INSTALL(FILES ${AplanGuiPythonUI_SRCS} DESTINATION Mod/Aplan/Resources/ui)
+
+
 SET_BIN_DIR(AplanGui AplanGui /Mod/Aplan)
 SET_PYTHON_PREFIX_SUFFIX(AplanGui)
 

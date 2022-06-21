@@ -61,6 +61,11 @@ INSTALL(FILES ${AplanTools_SRCS} DESTINATION Mod/Aplan/aplantools)
 # ****** Python Gui packages and modules *********************************************************
 # ************************************************************************************************
 
+SET(AplanGuiTaskPanels_SRCS
+    aplantaskpanels/__init__.py
+    aplantaskpanels/task_part_filter.py
+)
+
 SET(AplanGuiViewProvider_SRCS
     aplanviewprovider/__init__.py
     aplanviewprovider/view_part_filter.py
@@ -68,6 +73,7 @@ SET(AplanGuiViewProvider_SRCS
 )
 
 SET(AplanAllGuiScripts
+    ${AplanGuiTaskPanels_SRCS}
     ${AplanGuiViewProvider_SRCS}
 )
 
@@ -78,5 +84,6 @@ if(BUILD_GUI)
     fc_copy_sources(AplanGuiScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllGuiScripts})
 
     # install directories for Python packages (for make install)
+    INSTALL(FILES ${AplanGuiTaskPanels_SRCS} DESTINATION Mod/Aplan/aplantaskpanels/)
     INSTALL(FILES ${AplanGuiViewProvider_SRCS} DESTINATION Mod/Aplan/aplanviewprovider/)
 endif(BUILD_GUI)

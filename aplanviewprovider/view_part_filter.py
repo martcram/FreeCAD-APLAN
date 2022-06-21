@@ -31,7 +31,14 @@ __url__ = "https://www.freecadweb.org"
 #  \ingroup APLAN
 #  \brief view provider for PartFilter object
 
-from pivy import coin
+from aplantools import aplanutils
+try:
+    from aplantaskpanels import task_part_filter
+    import FreeCAD
+    import FreeCADGui
+    from pivy import coin
+except ImportError as ie:
+    aplanutils.missingPythonModule(str(ie.name or ""))
 
 
 class ViewProviderPartFilter:
@@ -96,12 +103,24 @@ class ViewProviderPartFilter:
         return []
 
     def setEdit(self, vobj, mode=0):
+        task = task_part_filter._TaskPanel(vobj.Object)
+        FreeCADGui.Control.showDialog(task)
         return True
 
     def unsetEdit(self, vobj, mode=0):
+        FreeCADGui.Control.closeDialog()
         return True
     
     def doubleClicked(self, vobj):
+        guidoc = FreeCADGui.getDocument(vobj.Object.Document)
+        # check if another VP is in edit mode
+        # https://forum.freecadweb.org/viewtopic.php?t=13077#p104702
+        if not guidoc.getInEdit():
+            guidoc.setEdit(vobj.Object.Name)
+        else:
+            error: str = "Active Task Dialog found! Please close this one before opening a new one!"
+            aplanutils.displayAplanError("Error in tree view", error)
+            FreeCAD.Console.PrintError(error + "\n")
         return True
     
     def __getstate__(self):
