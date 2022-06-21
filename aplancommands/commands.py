@@ -26,12 +26,12 @@ __title__ = "FreeCAD APLAN command definitions"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-
-import FreeCAD
-import FreeCADGui
-from FreeCAD import Qt
-
 from .manager import CommandManager
+import FreeCAD
+if FreeCAD.GuiUp:
+    import AplanGui
+    import FreeCADGui
+    from FreeCAD import Qt
 
 # Python command definitions
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
@@ -53,7 +53,10 @@ class _PartFilter(CommandManager):
         self.do_activated = "add_obj_on_gui_set_edit"
     
     def IsActive(self) -> bool:
-        return True
+        analysis = AplanGui.getActiveAnalysis()
+        return (analysis is not None
+                and self.active_analysis_in_active_doc()
+                and len(analysis.PartFilterObjects) == 0)
 
 
 class _ToggleTransparency(CommandManager):
