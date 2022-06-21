@@ -35,6 +35,8 @@ SOURCE_GROUP("Module" FILES ${Mod_SRCS})
 SET(AplanBase_SRCS
     AplanAnalysis.cpp
     AplanAnalysis.hpp
+    AplanCompound.cpp
+    AplanCompound.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
 )
