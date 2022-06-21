@@ -26,8 +26,34 @@ __title__ = "APLAN Utilities"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
+import FreeCAD
 import FreeCADGui
 from PySide2 import QtWidgets
+
+
+# Source: src/Mod/Fem/femtools/femutils.py
+def createObject(doc, name: str, proxy, viewProxy = None):
+    """Add Python object to document using Python type string.
+
+    Add a document object suitable for the *proxy* and the *viewProxy* to *doc*
+    and attach it to the *proxy* and the *viewProxy*. This function can only be
+    used with Python proxies that specify their C++ type via the BaseType class
+    member (e.g. Cube.BaseType). If there already exists a object with *name* a
+    suitable unique name is generated. To auto generate a name pass ``""``.
+
+    :param doc:         document object to which the object is added
+    :param name:        string of the name of new object in *doc*, use
+                        ``""`` to generate a name
+    :param proxy:       Python proxy for new object
+    :param viewProxy:   view proxy for new object
+
+    :returns:           reference to new object
+    """
+    obj = doc.addObject(proxy.BaseType, name)
+    proxy(obj)
+    if FreeCAD.GuiUp and viewProxy is not None:
+        viewProxy(obj.ViewObject)
+    return obj
 
 
 def missingPythonModule(name: str) -> None:
