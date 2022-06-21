@@ -14,6 +14,7 @@ link_directories(${OCC_LIBRARY_DIR})
 set(AplanGui_LIBS
     Aplan
     FreeCADGui
+    PartGui
 )
 
 set(AplanGui_MOC_HDRS
@@ -49,6 +50,8 @@ SOURCE_GROUP("Resources" FILES ${AplanResource_SRCS})
 SET(AplanGui_SRCS_ViewProvider
     ViewProviderAnalysis.cpp
     ViewProviderAnalysis.hpp
+    ViewProviderCompound.cpp
+    ViewProviderCompound.hpp
     ViewProviderPartFilter.cpp
     ViewProviderPartFilter.hpp
 )
