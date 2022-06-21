@@ -34,6 +34,8 @@
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
+#include <Mod/Aplan/App/AplanCompound.hpp>
+#include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 
 namespace Aplan
 {
@@ -51,6 +53,12 @@ PyMOD_INIT_FUNC(Aplan)
 
     Aplan::AplanAnalysis::init();
     Aplan::AplanAnalysisPython::init();
+
+    Aplan::Compound::init();
+    Aplan::CompoundPython::init();
+
+    Aplan::AplanCompoundGroup::init();
+    Aplan::AplanCompoundGroupPython::init();
 
     Aplan::PartFilter::init();
     Aplan::PartFilterPython::init();
