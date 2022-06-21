@@ -56,6 +56,18 @@ def createObject(doc, name: str, proxy, viewProxy = None):
     return obj
 
 
+def displayAplanError(message: str, error: str) -> None:
+    """Displays a QMessageBox for notifying errors related to the APLAN workbench.
+
+    :param message: brief error message to display
+    :type message: str
+    :param error: detailed description of the error and the potential solution
+    :type error: str
+    """
+    QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), "APLAN ERROR",
+    "{}\n\nError: {}".format(message, error))
+
+
 def missingPythonModule(name: str) -> None:
     """Displays a QMessageBox stating that a dependency is missing and 
     asking the user to install the absent Python module.
