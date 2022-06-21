@@ -60,7 +60,7 @@ CmdAplanAnalysis::CmdAplanAnalysis()
     sAppModule = "Aplan";
     sGroup = QT_TR_NOOP("Aplan");
     sMenuText = QT_TR_NOOP("Analysis container");
-    sToolTipText = QT_TR_NOOP("Creates an APLAN analysis container with a standard solver");
+    sToolTipText = QT_TR_NOOP("Creates an APLAN analysis container");
     sWhatsThis = "APLAN_Analysis";
     sStatusTip = sToolTipText;
     sPixmap = "APLAN_Analysis";
@@ -75,6 +75,7 @@ void CmdAplanAnalysis::activated(int)
     addModule(Doc, "ObjectsAplan");
     doCommand(Doc, "ObjectsAplan.makeAnalysis(FreeCAD.ActiveDocument, \"%s\")", analysisName.c_str());
     doCommand(Doc, "AplanGui.setActiveAnalysis(FreeCAD.ActiveDocument.ActiveObject)");
+    doCommand(Gui, "Gui.activeDocument().setEdit(AplanGui.getActiveAnalysis())");
     updateActive();
 }
 
