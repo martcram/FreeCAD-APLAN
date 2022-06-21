@@ -26,6 +26,7 @@ __title__ = "APLAN Utilities"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
+import AplanGui
 import FreeCAD
 import FreeCADGui
 from PySide2 import QtWidgets
@@ -66,6 +67,18 @@ def displayAplanError(message: str, error: str) -> None:
     """
     QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), "APLAN ERROR",
     "{}\n\nError: {}".format(message, error))
+
+
+def getActiveAnalysis():
+    """Returns the active analysis in the current document.
+
+    :return: the active analysis object if present
+    :rtype: `AplanAnalysis` or `None`
+    """
+    analysis = AplanGui.getActiveAnalysis()
+    if analysis.Document is FreeCAD.ActiveDocument:
+        return analysis
+    return None
 
 
 def missingPythonModule(name: str) -> None:
