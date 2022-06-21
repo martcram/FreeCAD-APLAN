@@ -37,6 +37,8 @@ SET(AplanBase_SRCS
     AplanAnalysis.hpp
     AplanCompound.cpp
     AplanCompound.hpp
+    AplanCompoundGroup.cpp
+    AplanCompoundGroup.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
 )
