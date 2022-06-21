@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (c) 2008 Werner Mayer <werner.wm.mayer@gmx.de>              *
- *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+ *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -90,6 +90,11 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
            << "Separator"
            << "APLAN_ToggleTransparency"
            << "APLAN_TopoConstraints";
+
+    Gui::ToolBarItem *partFilters = new Gui::ToolBarItem(root);
+    partFilters->setCommand("Part filters");
+    *partFilters
+        << "APLAN_PartFilter";
 
     return root;
 }

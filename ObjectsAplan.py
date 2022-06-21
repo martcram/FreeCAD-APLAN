@@ -38,6 +38,13 @@ def makeAnalysis(doc, name="Analysis"):
     return obj
 
 # ********* constraint objects **********************************************
+def makePartFilter(doc, name="PartFilter"):
+    """makePartFilter(document, [name]):
+    makes an APLAN PartFilter object"""
+    import aplanobjects.part_filter
+    obj = aplanobjects.part_filter.create(doc, name)
+    return obj
+
 def makeTopoConstraints(doc, name="TopoConstraints"):
     """makeTopoConstraints(document, [name]):
     makes an APLAN TopoConstraints object"""

@@ -37,6 +37,25 @@ from .manager import CommandManager
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
 
 
+class _PartFilter(CommandManager):
+    "..."
+
+    def __init__(self) -> None:
+        super(_PartFilter, self).__init__()
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_PartFilter",
+            "Part filter"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_PartFilter",
+            "Creates a part filter for grouping or exluding parts from analysis"
+        )
+        self.do_activated = "add_obj_on_gui_set_edit"
+    
+    def IsActive(self) -> bool:
+        return True
+
+
 class _ToggleTransparency(CommandManager):
     "Toggles the transparency of the available parts"
 
@@ -74,5 +93,6 @@ class _TopoConstraints(CommandManager):
         self.do_activated = "add_obj_on_gui_set_edit"
 
 
+FreeCADGui.addCommand("APLAN_PartFilter",         _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency", _ToggleTransparency())
-FreeCADGui.addCommand("APLAN_TopoConstraints", _TopoConstraints())
+FreeCADGui.addCommand("APLAN_TopoConstraints",    _TopoConstraints())
