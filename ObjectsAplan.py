@@ -37,13 +37,22 @@ def makeAnalysis(doc, name="Analysis"):
     obj = doc.addObject("Aplan::AplanAnalysis", name)
     return obj
 
+
 # ********* constraint objects **********************************************
+def makeCompoundGroup(doc, name="Compounds"):
+    """makeCompoundGroup(document, [name]):
+    makes an APLAN compound group object"""
+    obj = doc.addObject("Aplan::AplanCompoundGroup", name)
+    return obj
+
+
 def makePartFilter(doc, name="PartFilter"):
     """makePartFilter(document, [name]):
     makes an APLAN PartFilter object"""
     import aplanobjects.part_filter
     obj = aplanobjects.part_filter.create(doc, name)
     return obj
+
 
 def makeTopoConstraints(doc, name="TopoConstraints"):
     """makeTopoConstraints(document, [name]):

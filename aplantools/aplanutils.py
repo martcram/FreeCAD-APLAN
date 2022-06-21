@@ -29,6 +29,7 @@ __url__ = "https://www.freecadweb.org"
 import AplanGui
 import FreeCAD
 import FreeCADGui
+import ObjectsAplan
 from PySide2 import QtWidgets
 
 
@@ -79,6 +80,24 @@ def getActiveAnalysis():
     if analysis.Document is FreeCAD.ActiveDocument:
         return analysis
     return None
+
+
+def getCompoundGroup(analysis):
+    """Returns the first CompoundGroup of the corresponding analysis.
+    If no CompoundGroup is present, one will be added to the analysis.
+
+    :param analysis: the analysis object
+    :type analysis: `AplanAnalysis`
+    :return: the compound group object
+    :rtype: `AplanCompoundGroup`
+    """
+    groupObjects = analysis.CompoundGroupObjects
+    if not groupObjects:
+        compoundGroup = ObjectsAplan.makeCompoundGroup(FreeCAD.ActiveDocument)
+        analysis.addObject(compoundGroup)
+        return compoundGroup
+    else:
+        return groupObjects[0]
 
 
 def missingPythonModule(name: str) -> None:
