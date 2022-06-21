@@ -17,10 +17,13 @@ set(Aplan_LIBS
 )
 
 generate_from_xml(AplanAnalysisPy)
+generate_from_xml(AplanCompoundGroupPy)
 
 SET(Python_SRCS
     AplanAnalysisPy.xml
     AplanAnalysisPyImp.cpp
+    AplanCompoundGroupPy.xml
+    AplanCompoundGroupPyImp.cpp
 )
 SOURCE_GROUP("Python" FILES ${Python_SRCS})
 

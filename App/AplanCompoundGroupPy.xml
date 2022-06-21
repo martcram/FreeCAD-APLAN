@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenerateModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="generateMetaModel_Module.xsd">
+    <PythonExport
+            Father="DocumentObjectGroupPy"
+            Name="AplanCompoundGroupPy"
+            Twin="AplanCompoundGroup"
+            TwinPointer="AplanCompoundGroup"
+            Include="Mod/Aplan/App/AplanCompoundGroup.hpp"
+            Namespace="Aplan"
+            FatherInclude="App/DocumentObjectGroupPy.h"
+            FatherNamespace="App">
+        <Documentation>
+            <Author Licence="LGPL" Name="Martijn Cramer" EMail="martijn.cramer@outlook.com" />
+            <UserDocu>AplanCompoundGroup class</UserDocu>
+        </Documentation>
+        <Attribute Name="CompoundObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all Compound objects contained in the corresponding AplanCompoundGroup</UserDocu>
+            </Documentation>
+            <Parameter Name="CompoundObjects" Type="List"/>
+        </Attribute>
+    </PythonExport>
+</GenerateModel>
