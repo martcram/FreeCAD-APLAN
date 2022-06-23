@@ -95,6 +95,11 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     partFilters->setCommand("Part filters");
     *partFilters
         << "APLAN_PartFilter";
+    
+    Gui::ToolBarItem *connections = new Gui::ToolBarItem(root);
+    connections->setCommand("Connections");
+    *connections
+        << "APLAN_ConnectionDetectorSwellOCCT";
 
     return root;
 }

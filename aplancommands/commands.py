@@ -37,6 +37,31 @@ if FreeCAD.GuiUp:
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
 
 
+class _ConnectionDetectorSwellOCCT(CommandManager):
+    "..."
+
+    def __init__(self) -> None:
+        super(_ConnectionDetectorSwellOCCT, self).__init__()
+        self.pixmap: str = "APLAN_ConnectionDetector"
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ConnectionDetectorSwellOCCT",
+            "SwellOCCT connection detector"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ConnectionDetectorSwellOCCT",
+            "Creates a SwellOCCT solver for detecting part connections\nbased on bounding box intersections and OpenCascade's tools"
+        )
+        self.do_activated = "add_obj_on_gui_set_edit"
+
+    def IsActive(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        objectExists: bool = any([detector.Type == "SwellOCCT"
+                                  for detector in analysis.ConnectionDetectorObjects])
+        return (analysis is not None
+                and self.active_analysis_in_active_doc()
+                and not objectExists)
+
+
 class _PartFilter(CommandManager):
     "..."
 
@@ -96,6 +121,7 @@ class _TopoConstraints(CommandManager):
         self.do_activated = "add_obj_on_gui_set_edit"
 
 
-FreeCADGui.addCommand("APLAN_PartFilter",         _PartFilter())
-FreeCADGui.addCommand("APLAN_ToggleTransparency", _ToggleTransparency())
-FreeCADGui.addCommand("APLAN_TopoConstraints",    _TopoConstraints())
+FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
+FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
+FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())
+FreeCADGui.addCommand("APLAN_TopoConstraints",             _TopoConstraints())

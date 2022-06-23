@@ -72,3 +72,12 @@ def makeTopoConstraints(doc, name="TopoConstraints"):
     import aplanobjects.topo_constraints
     obj = aplanobjects.topo_constraints.create(doc, name)
     return obj
+
+
+# ********* Connection detection objects **********************************************
+def makeConnectionDetectorSwellOCCT(doc, name="ConnectDetector"):
+    """makeConnectionDetectorSwellOCCT(document, [name]):
+    makes an APLAN SwellOCCT ConnectionDetector object"""
+    from aplansolvers.aplan_connection_detectors import swell_occt
+    obj = swell_occt.create(doc, name)
+    return obj
