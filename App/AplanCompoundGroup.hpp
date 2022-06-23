@@ -48,6 +48,8 @@ namespace Aplan
         {
             return "AplanGui::ViewProviderCompoundGroup";
         }
+        
+        PyObject *getPyObject(void);
     };
 
     typedef App::FeaturePythonT<AplanCompoundGroup> AplanCompoundGroupPython;

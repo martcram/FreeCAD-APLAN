@@ -29,6 +29,7 @@
 #include <App/FeaturePythonPyImp.h>
 #include <Mod/Aplan/App/AplanCompound.hpp>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
+#include <Mod/Aplan/App/AplanCompoundGroupPy.h>
 
 using namespace Aplan;
 
@@ -53,6 +54,16 @@ std::vector<Aplan::Compound *> AplanCompoundGroup::getCompoundObjects(void) cons
         }
     }
     return objects;
+}
+
+PyObject *AplanCompoundGroup::getPyObject()
+{
+    if (PythonObject.is(Py::_None()))
+    {
+        // ref counter is set to 1
+        PythonObject = Py::Object(new AplanCompoundGroupPy(this), true);
+    }
+    return Py::new_reference_to(PythonObject);
 }
 
 // Python feature ---------------------------------------------------------
