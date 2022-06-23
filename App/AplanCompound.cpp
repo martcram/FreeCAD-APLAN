@@ -24,7 +24,6 @@
 
 #include "PreCompiled.hpp"
 
-
 #include <App/DocumentObjectPy.h>
 #include <App/FeaturePythonPyImp.h>
 #include <Mod/Aplan/App/AplanCompound.hpp>
@@ -35,6 +34,7 @@ using namespace Aplan;
 PROPERTY_SOURCE(Aplan::Compound, Part::Compound)
 
 Compound::Compound()
+    : Part::Compound{}
 {
 }
 
