@@ -30,6 +30,10 @@ __url__ = "https://www.freecadweb.org"
 # \addtogroup APLAN
 #  @{
 
+import FreeCAD
+import typing
+
+
 # ********* analysis objects ************************************************
 def makeAnalysis(doc, name="Analysis"):
     """makeAnalysis(document, [name]):
@@ -39,6 +43,14 @@ def makeAnalysis(doc, name="Analysis"):
 
 
 # ********* constraint objects **********************************************
+def makeCompound(analysis, components: typing.List, name="Compound"):
+    """makeCompound(analysis, components, [name]):
+    makes an APLAN Compound object"""
+    import aplanobjects.compound
+    obj = aplanobjects.compound.create(FreeCAD.ActiveDocument, analysis, components, name)
+    return obj
+
+
 def makeCompoundGroup(doc, name="Compounds"):
     """makeCompoundGroup(document, [name]):
     makes an APLAN compound group object"""
