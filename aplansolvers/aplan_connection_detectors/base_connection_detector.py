@@ -29,7 +29,12 @@ __url__ = "https://www.freecadweb.org"
 from aplantools import aplanutils
 try:
     import abc
+    import enum
+    import FreeCAD
+    import FreeCADGui
     from pivy import coin
+    from PySide2 import QtCore, QtGui
+    import typing
 except ImportError as ie:
     aplanutils.missingPythonModule(ie.name)
 
@@ -137,3 +142,47 @@ class IVPConnectionDetector(metaclass=abc.ABCMeta):
         Called during document restore.
         """
         return None
+
+
+class ITaskPanel(metaclass=abc.ABCMeta):
+    _COLOR_RUN:         typing.Final[str] = "yellowGreen"
+    _COLOR_TERMINATING: typing.Final[str] = "darkOrange"
+    _COLOR_ABORT:       typing.Final[str] = "crimson"
+
+    def __init__(self, connectionDetectorObject) -> None:
+        self.obj = connectionDetectorObject
+        self._analysis = aplanutils.getActiveAnalysis()
+        self._solverThread: typing.Optional[QtCore.QThread] = None
+        self._solverType: typing.Final[str] = str(self.obj.Type)
+        
+        self.form = FreeCADGui.PySideUic.loadUi(
+            FreeCAD.getHomePath() + 
+            "Mod/Aplan/Resources/ui/aplan_connection_detectors/{}.ui"
+            .format(self._solverType)
+        )
+
+
+class BaseWorker(QtCore.QObject):
+    finished: QtCore.Signal = QtCore.Signal(dict)
+    progress: QtCore.Signal = QtCore.Signal(dict)
+
+    def __init__(self) -> None:
+        super(BaseWorker, self).__init__()
+        self._isRunning: bool = True
+
+    def run(self) -> None:
+        raise NotImplementedError
+
+    def stop(self):
+        self._isRunning = False
+
+    @property
+    def isRunning(self) -> bool:
+        return self._isRunning
+
+
+class MessageType(enum.Enum):
+    FOCUS:   QtGui.QColor = QtGui.QColor(0, 0, 255)
+    INFO:    QtGui.QColor = QtGui.QColor(0, 0, 0)
+    WARNING: QtGui.QColor = QtGui.QColor(255, 140, 0)
+    ERROR:   QtGui.QColor = QtGui.QColor(255, 0, 0)
