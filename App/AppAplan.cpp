@@ -45,6 +45,15 @@ namespace Aplan
 /* Python entry */
 PyMOD_INIT_FUNC(Aplan)
 {
+    // load dependent modules
+    try {
+        Base::Interpreter().loadModule("Part");
+    }
+    catch(const Base::Exception& e) {
+        PyErr_SetString(PyExc_ImportError, e.what());
+        PyMOD_Return(0);
+    }
+
     PyObject *mod = Aplan::initModule();
     Base::Console().Log("Loading the APLAN module... done\n");
 

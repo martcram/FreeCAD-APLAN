@@ -61,6 +61,15 @@ PyMOD_INIT_FUNC(AplanGui)
         PyMOD_Return(0);
     }
 
+    // load dependent modules
+    try {
+        Base::Interpreter().loadModule("PartGui");
+    }
+    catch(const Base::Exception& e) {
+        PyErr_SetString(PyExc_ImportError, e.what());
+        PyMOD_Return(0);
+    }
+
     PyObject *mod = AplanGui::initModule();
     Base::Console().Log("Loading GUI of APLAN module... done\n");
 
