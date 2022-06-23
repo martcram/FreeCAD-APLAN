@@ -19,6 +19,12 @@
             </Documentation>
             <Parameter Name="CompoundGroupObjects" Type="List"/>
         </Attribute>
+        <Attribute Name="ConnectionDetectorObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all ConnectionDetector objects contained in the corresponding AplanAnalysis</UserDocu>
+            </Documentation>
+            <Parameter Name="ConnectionDetectorObjects" Type="List"/>
+        </Attribute>
         <Attribute Name="PartFilterObjects" ReadOnly="true">
             <Documentation>
                 <UserDocu>List of all PartFilter objects contained in the corresponding AplanAnalysis</UserDocu>

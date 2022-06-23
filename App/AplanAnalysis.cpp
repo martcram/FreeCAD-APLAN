@@ -39,6 +39,7 @@
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
 #include <Mod/Aplan/App/AplanAnalysisPy.h>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
+#include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 using namespace Aplan;
@@ -75,6 +76,19 @@ std::vector<Aplan::AplanCompoundGroup *> AplanAnalysis::getCompoundGroupObjects(
         if (obj->isDerivedFrom(Aplan::AplanCompoundGroup::getClassTypeId()))
         {
             objects.push_back(static_cast<Aplan::AplanCompoundGroup *>(obj));
+        }
+    }
+    return objects;
+}
+
+std::vector<Aplan::ConnectionDetector *> AplanAnalysis::getConnectionDetectorObjects(void) const
+{
+    std::vector<Aplan::ConnectionDetector *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::ConnectionDetector::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::ConnectionDetector *>(obj));
         }
     }
     return objects;
