@@ -24,6 +24,8 @@
 
 #include "PreCompiled.hpp"
 
+#include <App/Application.h>
+#include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
 #include <App/DocumentObjectGroup.h>
@@ -32,6 +34,7 @@
 #include <Base/BaseClass.h>
 #include <Base/Placement.h>
 #include <Base/Uuid.h>
+#include <Base/Tools.h>
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
 #include <Mod/Aplan/App/AplanAnalysisPy.h>
@@ -88,6 +91,19 @@ std::vector<Aplan::PartFilter *> AplanAnalysis::getPartFilterObjects(void) const
         }
     }
     return objects;
+}
+
+std::string AplanAnalysis::getUniqueObjectLabel(const std::string &label, const std::vector<std::string> &extraLabels) const
+{
+    std::vector<std::string> objectLabels{extraLabels};
+    App::Document *doc = App::GetApplication().getActiveDocument();
+    const std::vector<App::DocumentObject *> objects = doc->getObjects();
+    std::transform(objects.begin(), objects.end(), std::back_inserter(objectLabels),
+                   [](App::DocumentObject *obj) -> std::string
+                   {
+                       return obj->Label.getValue();
+                   });
+    return Base::Tools::getUniqueName(label, objectLabels, 3);
 }
 
 // Dummy class 'DocumentObject' in Aplan namespace

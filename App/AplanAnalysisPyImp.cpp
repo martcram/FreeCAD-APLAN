@@ -81,6 +81,48 @@ Py::List AplanAnalysisPy::getPartFilterObjects(void) const
     return pyObjects;
 }
 
+PyObject *AplanAnalysisPy::getUniqueObjectLabel(PyObject *args)
+{
+    const char *label{};
+    PyObject *pList{NULL};
+    if (!PyArg_ParseTuple(args, "s|O!", &label, &PyList_Type, &pList)) // "|" indicates that the remaining arguments in the Python argument list are optional.
+    {
+        PyErr_SetString(PyExc_TypeError, "getUniqueObjectLabel: 1st parameter must be a string, 2nd parameter must be a list.");
+        return 0;
+    }
+
+    std::vector<std::string> extraLabels{};
+    if (pList != NULL)
+    {
+        Py_ssize_t n{PyList_Size(pList)};
+        for (Py_ssize_t i = 0; i < n; i++)
+        {
+            PyObject *pItem = PyList_GetItem(pList, i);
+            if (PyUnicode_Check(pItem))
+            {
+                extraLabels.push_back(std::string(PyBytes_AsString(PyUnicode_AsUTF8String(pItem))));
+            }
+            else
+            {
+                PyErr_SetString(PyExc_TypeError, "getUniqueObjectLabel: List items must be strings.");
+                return 0;
+            }
+        }
+    }
+
+    PyObject *pyObjectName{};
+    try
+    {
+        std::string uniqueLabel = getAplanAnalysisPtr()->getUniqueObjectLabel(label, extraLabels);
+        pyObjectName = PyUnicode_FromString(uniqueLabel.c_str());
+    }
+    catch (const std::exception &e)
+    {
+        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+    }
+    return pyObjectName;
+}
+
 // ===== custom attributes ============================================================
 
 PyObject *AplanAnalysisPy::getCustomAttributes(const char * /*attr*/) const

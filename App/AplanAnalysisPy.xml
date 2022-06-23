@@ -25,5 +25,10 @@
             </Documentation>
             <Parameter Name="PartFilterObjects" Type="List"/>
         </Attribute>
+        <Methode Name="getUniqueObjectLabel" Const="true">
+            <Documentation>
+                <UserDocu></UserDocu>
+            </Documentation>
+        </Methode>
     </PythonExport>
 </GenerateModel>

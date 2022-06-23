@@ -47,6 +47,7 @@ namespace Aplan
 
         std::vector<Aplan::AplanCompoundGroup *> getCompoundGroupObjects(void) const;
         std::vector<Aplan::PartFilter *> getPartFilterObjects(void) const;
+        std::string getUniqueObjectLabel(const std::string &, const std::vector<std::string> & = {}) const;
 
         App::PropertyUUID Uid;
         App::PropertyString WorkingDir;
