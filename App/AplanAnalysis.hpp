@@ -32,6 +32,7 @@
 #include <App/FeaturePython.h>
 #include <App/PropertyStandard.h>
 
+#include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 namespace Aplan
@@ -44,6 +45,7 @@ namespace Aplan
         AplanAnalysis();
         virtual ~AplanAnalysis();
 
+        std::vector<Aplan::AplanCompoundGroup *> getCompoundGroupObjects(void) const;
         std::vector<Aplan::PartFilter *> getPartFilterObjects(void) const;
 
         App::PropertyUUID Uid;

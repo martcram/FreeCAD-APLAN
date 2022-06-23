@@ -28,6 +28,7 @@
 #include <exception>
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
+#include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 // inclusion of the generated files (generated out of AplanAnalysisPy.xml)
@@ -43,6 +44,24 @@ std::string AplanAnalysisPy::representation(void) const
 }
 
 // ===== Methods ============================================================
+
+Py::List AplanAnalysisPy::getCompoundGroupObjects(void) const
+{
+    Py::List pyObjects;
+    try
+    {
+        std::vector<Aplan::AplanCompoundGroup *> objects = getAplanAnalysisPtr()->getCompoundGroupObjects();
+        for (Aplan::AplanCompoundGroup *o : objects)
+        {
+            pyObjects.append(Py::Object(o->getPyObject()));
+        }
+    }
+    catch (const std::exception &e)
+    {
+        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+    }
+    return pyObjects;
+}
 
 Py::List AplanAnalysisPy::getPartFilterObjects(void) const
 {
