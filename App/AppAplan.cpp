@@ -34,6 +34,8 @@
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
+#include <Mod/Aplan/App/AplanCompound.hpp>
+#include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 
 namespace Aplan
 {
@@ -43,6 +45,15 @@ namespace Aplan
 /* Python entry */
 PyMOD_INIT_FUNC(Aplan)
 {
+    // load dependent modules
+    try {
+        Base::Interpreter().loadModule("Part");
+    }
+    catch(const Base::Exception& e) {
+        PyErr_SetString(PyExc_ImportError, e.what());
+        PyMOD_Return(0);
+    }
+
     PyObject *mod = Aplan::initModule();
     Base::Console().Log("Loading the APLAN module... done\n");
 
@@ -51,6 +62,12 @@ PyMOD_INIT_FUNC(Aplan)
 
     Aplan::AplanAnalysis::init();
     Aplan::AplanAnalysisPython::init();
+
+    Aplan::Compound::init();
+    Aplan::CompoundPython::init();
+
+    Aplan::AplanCompoundGroup::init();
+    Aplan::AplanCompoundGroupPython::init();
 
     Aplan::PartFilter::init();
     Aplan::PartFilterPython::init();

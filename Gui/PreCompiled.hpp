@@ -32,10 +32,14 @@
 #define AplanAppExport __declspec(dllimport)
 #define AplanExport __declspec(dllimport)
 #define AplanGuiExport __declspec(dllexport)
+#define PartExport     __declspec(dllimport)
+#define PartGuiExport  __declspec(dllexport)
 #else // for Linux
 #define AplanAppExport
 #define AplanExport
 #define AplanGuiExport
+#define PartExport
+#define PartGuiExport
 #endif
 
 #ifdef _MSC_VER

@@ -16,6 +16,17 @@ set(Aplan_LIBS
     Part
 )
 
+generate_from_xml(AplanAnalysisPy)
+generate_from_xml(AplanCompoundGroupPy)
+
+SET(Python_SRCS
+    AplanAnalysisPy.xml
+    AplanAnalysisPyImp.cpp
+    AplanCompoundGroupPy.xml
+    AplanCompoundGroupPyImp.cpp
+)
+SOURCE_GROUP("Python" FILES ${Python_SRCS})
+
 SET(Mod_SRCS
     AppAplan.cpp
     AppAplanPy.cpp
@@ -27,14 +38,19 @@ SOURCE_GROUP("Module" FILES ${Mod_SRCS})
 SET(AplanBase_SRCS
     AplanAnalysis.cpp
     AplanAnalysis.hpp
+    AplanCompound.cpp
+    AplanCompound.hpp
+    AplanCompoundGroup.cpp
+    AplanCompoundGroup.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
 )
 SOURCE_GROUP("Base types" FILES ${AplanBase_SRCS})
 
 SET(Aplan_SRCS
-    ${Mod_SRCS}
     ${AplanBase_SRCS}
+    ${Mod_SRCS}
+    ${Python_SRCS}
 )
 
 add_library(Aplan SHARED ${Aplan_SRCS})

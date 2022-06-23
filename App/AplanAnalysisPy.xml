@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenerateModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="generateMetaModel_Module.xsd">
+    <PythonExport
+            Father="DocumentObjectGroupPy"
+            Name="AplanAnalysisPy"
+            Twin="AplanAnalysis"
+            TwinPointer="AplanAnalysis"
+            Include="Mod/Aplan/App/AplanAnalysis.hpp"
+            Namespace="Aplan"
+            FatherInclude="App/DocumentObjectGroupPy.h"
+            FatherNamespace="App">
+        <Documentation>
+            <Author Licence="LGPL" Name="Martijn Cramer" EMail="martijn.cramer@outlook.com" />
+            <UserDocu>AplanAnalysis class</UserDocu>
+        </Documentation>
+        <Attribute Name="CompoundGroupObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all AplanCompoundGroup objects contained in the corresponding AplanAnalysis</UserDocu>
+            </Documentation>
+            <Parameter Name="CompoundGroupObjects" Type="List"/>
+        </Attribute>
+        <Attribute Name="PartFilterObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all PartFilter objects contained in the corresponding AplanAnalysis</UserDocu>
+            </Documentation>
+            <Parameter Name="PartFilterObjects" Type="List"/>
+        </Attribute>
+        <Methode Name="getUniqueObjectLabel" Const="true">
+            <Documentation>
+                <UserDocu></UserDocu>
+            </Documentation>
+        </Methode>
+    </PythonExport>
+</GenerateModel>

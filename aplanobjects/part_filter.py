@@ -1,7 +1,6 @@
 # ***************************************************************************
 # *                                                                         *
-# *   Copyright (c) 2016 Bernd Hahnebach <bernd@bimstatik.org>              *
-# *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+# *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
 # *                                                                         *
 # *   This file is part of the FreeCAD CAx development system.              *
 # *                                                                         *
@@ -23,52 +22,30 @@
 # *                                                                         *
 # ***************************************************************************
 
-__title__ = "Objects APLAN"
-__author__ = "Martijn Cramer, Bernd Hahnebach"
+__title__ = "FreeCAD APLAN part filter object"
+__author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-# \addtogroup APLAN
-#  @{
+# @package part_filter
+#  \ingroup APLAN
+#  \brief FreeCAD APLAN part filter object
 
-import FreeCAD
-import typing
-
-
-# ********* analysis objects ************************************************
-def makeAnalysis(doc, name="Analysis"):
-    """makeAnalysis(document, [name]):
-    makes an APLAN analysis object"""
-    obj = doc.addObject("Aplan::AplanAnalysis", name)
-    return obj
+from aplantools import aplanutils
+from aplanviewprovider.view_part_filter import ViewProviderPartFilter
 
 
-# ********* constraint objects **********************************************
-def makeCompound(analysis, components: typing.List, name="Compound"):
-    """makeCompound(analysis, components, [name]):
-    makes an APLAN Compound object"""
-    import aplanobjects.compound
-    obj = aplanobjects.compound.create(FreeCAD.ActiveDocument, analysis, components, name)
-    return obj
+def create(doc, name: str = "PartFilter"):
+    return aplanutils.createObject(doc, name, PartFilter, ViewProviderPartFilter)
 
 
-def makeCompoundGroup(doc, name="Compounds"):
-    """makeCompoundGroup(document, [name]):
-    makes an APLAN compound group object"""
-    obj = doc.addObject("Aplan::AplanCompoundGroup", name)
-    return obj
+class PartFilter:
+    BaseType = "Aplan::PartFilterPython"
 
+    def __init__(self, obj):
+        obj.Proxy = self
 
-def makePartFilter(doc, name="PartFilter"):
-    """makePartFilter(document, [name]):
-    makes an APLAN PartFilter object"""
-    import aplanobjects.part_filter
-    obj = aplanobjects.part_filter.create(doc, name)
-    return obj
+    def __getstate__(self):
+        return None
 
-
-def makeTopoConstraints(doc, name="TopoConstraints"):
-    """makeTopoConstraints(document, [name]):
-    makes an APLAN TopoConstraints object"""
-    import aplanobjects.topo_constraints
-    obj = aplanobjects.topo_constraints.create(doc, name)
-    return obj
+    def __setstate__(self, state):
+        return None

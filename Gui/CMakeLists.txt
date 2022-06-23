@@ -14,6 +14,7 @@ link_directories(${OCC_LIBRARY_DIR})
 set(AplanGui_LIBS
     Aplan
     FreeCADGui
+    PartGui
 )
 
 set(AplanGui_MOC_HDRS
@@ -49,6 +50,10 @@ SOURCE_GROUP("Resources" FILES ${AplanResource_SRCS})
 SET(AplanGui_SRCS_ViewProvider
     ViewProviderAnalysis.cpp
     ViewProviderAnalysis.hpp
+    ViewProviderCompound.cpp
+    ViewProviderCompound.hpp
+    ViewProviderCompoundGroup.hpp
+    ViewProviderCompoundGroup.cpp
     ViewProviderPartFilter.cpp
     ViewProviderPartFilter.hpp
 )
@@ -85,6 +90,22 @@ target_link_libraries(AplanGui ${AplanGui_LIBS})
 fc_copy_sources(AplanGui "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Mod/Aplan" ${AplanGuiIcon_SVG})
 
 INSTALL(FILES ${AplanGuiIcon_SVG} DESTINATION "${CMAKE_INSTALL_DATADIR}/Mod/Aplan/Resources/icons")
+
+
+# Python modules ui files, they are copied as they are, thus need not to be added to Aplan.qrc
+# see https://forum.freecadweb.org/viewtopic.php?f=10&t=25833
+SET(AplanGuiPythonUI_SRCS
+    Resources/ui/ExcludeParts.ui
+    Resources/ui/GroupParts.ui
+)
+
+ADD_CUSTOM_TARGET(AplanPythonUi ALL
+    SOURCES ${AplanGuiPythonUI_SRCS}
+)
+
+fc_copy_sources(AplanPythonUi "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanGuiPythonUI_SRCS})
+
+INSTALL(FILES ${AplanGuiPythonUI_SRCS} DESTINATION Mod/Aplan/Resources/ui)
 
 
 SET_BIN_DIR(AplanGui AplanGui /Mod/Aplan)

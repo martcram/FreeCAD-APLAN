@@ -3,5 +3,8 @@
         <!-- gui command icons -->
         <file>icons/APLAN_Analysis.svg</file>
 
+        <!-- task panels -->
+        <file>ui/ExcludeParts.ui</file>
+        <file>ui/GroupParts.ui</file>
     </qresource>
 </RCC> 

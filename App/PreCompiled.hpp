@@ -62,6 +62,7 @@
 #include <math.h>
 
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 // Python
 #include <Python.h>

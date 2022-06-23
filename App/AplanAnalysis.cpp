@@ -24,9 +24,8 @@
 
 #include "PreCompiled.hpp"
 
-#ifndef _PreComp_
-#endif
-
+#include <App/Application.h>
+#include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
 #include <App/DocumentObjectGroup.h>
@@ -35,8 +34,12 @@
 #include <Base/BaseClass.h>
 #include <Base/Placement.h>
 #include <Base/Uuid.h>
+#include <Base/Tools.h>
 
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
+#include <Mod/Aplan/App/AplanAnalysisPy.h>
+#include <Mod/Aplan/App/AplanCompoundGroup.hpp>
+#include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 using namespace Aplan;
 using namespace App;
@@ -52,6 +55,55 @@ AplanAnalysis::AplanAnalysis()
 
 AplanAnalysis::~AplanAnalysis()
 {
+}
+
+PyObject *AplanAnalysis::getPyObject()
+{
+    if (PythonObject.is(Py::_None()))
+    {
+        // ref counter is set to 1
+        PythonObject = Py::Object(new AplanAnalysisPy(this), true);
+    }
+    return Py::new_reference_to(PythonObject);
+}
+
+std::vector<Aplan::AplanCompoundGroup *> AplanAnalysis::getCompoundGroupObjects(void) const
+{
+    std::vector<Aplan::AplanCompoundGroup *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::AplanCompoundGroup::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::AplanCompoundGroup *>(obj));
+        }
+    }
+    return objects;
+}
+
+std::vector<Aplan::PartFilter *> AplanAnalysis::getPartFilterObjects(void) const
+{
+    std::vector<Aplan::PartFilter *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::PartFilter::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::PartFilter *>(obj));
+        }
+    }
+    return objects;
+}
+
+std::string AplanAnalysis::getUniqueObjectLabel(const std::string &label, const std::vector<std::string> &extraLabels) const
+{
+    std::vector<std::string> objectLabels{extraLabels};
+    App::Document *doc = App::GetApplication().getActiveDocument();
+    const std::vector<App::DocumentObject *> objects = doc->getObjects();
+    std::transform(objects.begin(), objects.end(), std::back_inserter(objectLabels),
+                   [](App::DocumentObject *obj) -> std::string
+                   {
+                       return obj->Label.getValue();
+                   });
+    return Base::Tools::getUniqueName(label, objectLabels, 3);
 }
 
 // Dummy class 'DocumentObject' in Aplan namespace

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (c) 2013 Jürgen Riegel <FreeCAD@juergen-riegel.net>         *
+ *   Copyright (c) 2009 Jürgen Riegel <juergen.riegel@web.de>              *
  *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
@@ -22,51 +22,54 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef APLAN_APLANANALYSIS_HPP
-#define APLAN_APLANANALYSIS_HPP
-
 #include "PreCompiled.hpp"
 
-#include <App/DocumentObject.h>
-#include <App/DocumentObjectGroup.h>
-#include <App/FeaturePython.h>
-#include <App/PropertyStandard.h>
+#include <Base/PyObjectBase.h>
+#include <exception>
 
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
-#include <Mod/Aplan/App/AplanPartFilter.hpp>
+#include <Mod/Aplan/App/AplanCompound.hpp>
 
-namespace Aplan
+// inclusion of the generated files (generated out of AplanConstraintsGroupPy.xml)
+#include <Mod/Aplan/App/AplanCompoundGroupPy.h>
+#include <Mod/Aplan/App/AplanCompoundGroupPy.cpp>
+
+using namespace Aplan;
+
+// returns a string which represents the object e.g. when printed in python
+std::string AplanCompoundGroupPy::representation(void) const
 {
-    class AplanAppExport AplanAnalysis : public App::DocumentObjectGroup
+    return std::string("<CompoundGroup object>");
+}
+
+// ===== Methods ============================================================
+
+Py::List AplanCompoundGroupPy::getCompoundObjects(void) const
+{
+    Py::List pyObjects;
+    try
     {
-        PROPERTY_HEADER(Aplan::AplanAnalysis);
-
-    public:
-        AplanAnalysis();
-        virtual ~AplanAnalysis();
-
-        std::vector<Aplan::AplanCompoundGroup *> getCompoundGroupObjects(void) const;
-        std::vector<Aplan::PartFilter *> getPartFilterObjects(void) const;
-        std::string getUniqueObjectLabel(const std::string &, const std::vector<std::string> & = {}) const;
-
-        App::PropertyUUID Uid;
-        App::PropertyString WorkingDir;
-
-        virtual const char *getViewProviderName() const
+        std::vector<Aplan::Compound *> objects = getAplanCompoundGroupPtr()->getCompoundObjects();
+        for (Aplan::Compound *o : objects)
         {
-            return "AplanGui::ViewProviderAplanAnalysis";
+            pyObjects.append(Py::Object(o->getPyObject()));
         }
-
-        PyObject *getPyObject(void);
-    };
-
-    class AplanAppExport DocumentObject : public App::DocumentObject
+    }
+    catch (const std::exception &e)
     {
-        PROPERTY_HEADER(Aplan::DocumentObject);
-    };
+        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+    }
+    return pyObjects;
+}
 
-    typedef App::FeaturePythonT<AplanAnalysis> AplanAnalysisPython;
-    typedef App::FeaturePythonT<DocumentObject> FeaturePython;
-} //namespace Aplan
+// ===== custom attributes ============================================================
 
-#endif // APLAN_APLANANALYSIS_HPP
+PyObject *AplanCompoundGroupPy::getCustomAttributes(const char * /*attr*/) const
+{
+    return 0;
+}
+
+int AplanCompoundGroupPy::setCustomAttributes(const char * /*attr*/, PyObject * /*obj*/)
+{
+    return 0;
+}

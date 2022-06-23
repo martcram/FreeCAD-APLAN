@@ -34,7 +34,9 @@
 
 #include <Mod/Aplan/Gui/ViewProviderAnalysis.hpp>
 #include <Mod/Aplan/Gui/ViewProviderPartFilter.hpp>
-#include "Workbench.hpp"
+#include <Mod/Aplan/Gui/ViewProviderCompound.hpp>
+#include <Mod/Aplan/Gui/ViewProviderCompoundGroup.hpp>
+#include <Mod/Aplan/Gui/Workbench.hpp>
 
 void CreateAplanCommands(void);
 
@@ -59,6 +61,15 @@ PyMOD_INIT_FUNC(AplanGui)
         PyMOD_Return(0);
     }
 
+    // load dependent modules
+    try {
+        Base::Interpreter().loadModule("PartGui");
+    }
+    catch(const Base::Exception& e) {
+        PyErr_SetString(PyExc_ImportError, e.what());
+        PyMOD_Return(0);
+    }
+
     PyObject *mod = AplanGui::initModule();
     Base::Console().Log("Loading GUI of APLAN module... done\n");
 
@@ -70,6 +81,12 @@ PyMOD_INIT_FUNC(AplanGui)
 
     AplanGui::ViewProviderAplanAnalysis::init();
     AplanGui::ViewProviderAplanAnalysisPython::init();
+
+    AplanGui::ViewProviderCompound::init();
+    AplanGui::ViewProviderCompoundPython::init();
+
+    AplanGui::ViewProviderCompoundGroup::init();
+    AplanGui::ViewProviderCompoundGroupPython::init();
 
     AplanGui::ViewProviderPartFilter::init();
     AplanGui::ViewProviderPartFilterPython::init();

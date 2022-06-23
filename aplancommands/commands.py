@@ -26,15 +26,37 @@ __title__ = "FreeCAD APLAN command definitions"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-
-import FreeCAD
-import FreeCADGui
-from FreeCAD import Qt
-
 from .manager import CommandManager
+import FreeCAD
+if FreeCAD.GuiUp:
+    import AplanGui
+    import FreeCADGui
+    from FreeCAD import Qt
 
 # Python command definitions
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
+
+
+class _PartFilter(CommandManager):
+    "..."
+
+    def __init__(self) -> None:
+        super(_PartFilter, self).__init__()
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_PartFilter",
+            "Part filter"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_PartFilter",
+            "Creates a part filter for grouping or exluding parts from analysis"
+        )
+        self.do_activated = "add_obj_on_gui_set_edit"
+    
+    def IsActive(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        return (analysis is not None
+                and self.active_analysis_in_active_doc()
+                and len(analysis.PartFilterObjects) == 0)
 
 
 class _ToggleTransparency(CommandManager):
@@ -74,5 +96,6 @@ class _TopoConstraints(CommandManager):
         self.do_activated = "add_obj_on_gui_set_edit"
 
 
+FreeCADGui.addCommand("APLAN_PartFilter",         _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency", _ToggleTransparency())
-FreeCADGui.addCommand("APLAN_TopoConstraints", _TopoConstraints())
+FreeCADGui.addCommand("APLAN_TopoConstraints",    _TopoConstraints())

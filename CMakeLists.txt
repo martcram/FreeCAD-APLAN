@@ -28,13 +28,21 @@ SET(AplanCommands_SRCS
 SET(AplanObjects_SRCS
     aplanobjects/__init__.py
     aplanobjects/base_aplanpythonobject.py
+    aplanobjects/compound.py
+    aplanobjects/part_filter.py
     aplanobjects/topo_constraints.py
+)
+
+SET(AplanTools_SRCS
+    aplantools/__init__.py
+    aplantools/aplanutils.py
 )
 
 SET(AplanAllScripts
     ${AplanBaseModules_SRCS}
     ${AplanCommands_SRCS}
     ${AplanObjects_SRCS}
+    ${AplanTools_SRCS}
 )
 
 ADD_CUSTOM_TARGET(AplanScriptsTarget ALL
@@ -47,18 +55,27 @@ fc_copy_sources(AplanScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllScr
 INSTALL(FILES ${AplanBaseModules_SRCS} DESTINATION Mod/Aplan)
 INSTALL(FILES ${AplanCommands_SRCS} DESTINATION Mod/Aplan/aplancommands)
 INSTALL(FILES ${AplanObjects_SRCS} DESTINATION Mod/Aplan/aplanobjects)
+INSTALL(FILES ${AplanTools_SRCS} DESTINATION Mod/Aplan/aplantools)
 
 
 # ************************************************************************************************
 # ****** Python Gui packages and modules *********************************************************
 # ************************************************************************************************
 
+SET(AplanGuiTaskPanels_SRCS
+    aplantaskpanels/__init__.py
+    aplantaskpanels/task_part_filter.py
+)
+
 SET(AplanGuiViewProvider_SRCS
     aplanviewprovider/__init__.py
+    aplanviewprovider/view_compound.py
+    aplanviewprovider/view_part_filter.py
     aplanviewprovider/view_topo_constraints.py
 )
 
 SET(AplanAllGuiScripts
+    ${AplanGuiTaskPanels_SRCS}
     ${AplanGuiViewProvider_SRCS}
 )
 
@@ -69,5 +86,6 @@ if(BUILD_GUI)
     fc_copy_sources(AplanGuiScriptsTarget "${CMAKE_BINARY_DIR}/Mod/Aplan" ${AplanAllGuiScripts})
 
     # install directories for Python packages (for make install)
+    INSTALL(FILES ${AplanGuiTaskPanels_SRCS} DESTINATION Mod/Aplan/aplantaskpanels/)
     INSTALL(FILES ${AplanGuiViewProvider_SRCS} DESTINATION Mod/Aplan/aplanviewprovider/)
 endif(BUILD_GUI)
