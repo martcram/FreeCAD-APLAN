@@ -42,6 +42,8 @@ SET(AplanBase_SRCS
     AplanCompound.hpp
     AplanCompoundGroup.cpp
     AplanCompoundGroup.hpp
+    AplanConnectionDetector.cpp
+    AplanConnectionDetector.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
 )

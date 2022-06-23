@@ -36,6 +36,7 @@
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanCompound.hpp>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
+#include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 
 namespace Aplan
 {
@@ -68,6 +69,9 @@ PyMOD_INIT_FUNC(Aplan)
 
     Aplan::AplanCompoundGroup::init();
     Aplan::AplanCompoundGroupPython::init();
+
+    Aplan::ConnectionDetector::init();
+    Aplan::ConnectionDetectorPython::init();
 
     Aplan::PartFilter::init();
     Aplan::PartFilterPython::init();
