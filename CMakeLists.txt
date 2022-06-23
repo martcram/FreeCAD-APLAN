@@ -38,6 +38,7 @@ SET(AplanSolvers_SRCS
     aplansolvers/aplan_aog_generators/__init__.py
     # Connection detectors
     aplansolvers/aplan_connection_detectors/__init__.py
+    aplansolvers/aplan_connection_detectors/base_connection_detector.py
     # Obstruction detectors
     aplansolvers/aplan_obstruction_detectors/__init__.py
 )
