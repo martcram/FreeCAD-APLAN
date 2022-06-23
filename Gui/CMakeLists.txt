@@ -97,6 +97,7 @@ INSTALL(FILES ${AplanGuiIcon_SVG} DESTINATION "${CMAKE_INSTALL_DATADIR}/Mod/Apla
 # Python modules ui files, they are copied as they are, thus need not to be added to Aplan.qrc
 # see https://forum.freecadweb.org/viewtopic.php?f=10&t=25833
 SET(AplanGuiPythonUI_SRCS
+    Resources/ui/aplan_connection_detectors/SwellOCCT.ui
     Resources/ui/ExcludeParts.ui
     Resources/ui/GroupParts.ui
 )

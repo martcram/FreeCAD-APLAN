@@ -4,6 +4,7 @@
         <file>icons/APLAN_Analysis.svg</file>
 
         <!-- task panels -->
+        <file>ui/aplan_connection_detectors/SwellOCCT.ui</file>
         <file>ui/ExcludeParts.ui</file>
         <file>ui/GroupParts.ui</file>
     </qresource>
