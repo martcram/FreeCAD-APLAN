@@ -109,3 +109,15 @@ def missingPythonModule(name: str) -> None:
     """
     QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), 
         "Missing dependency", "Please install the following Python module: {}".format(name))
+
+def purgeCompounds(analysis) -> None:
+    """Removes all Compound and CompoundGroup objects of the specified analysis.
+
+    :param analysis: the analysis object
+    :type analysis: `AplanAnalysis`
+    """
+    for group in analysis.CompoundGroupObjects:
+        for compound in group.Group:
+            analysis.Document.removeObject(compound.Name)
+        analysis.Document.removeObject(group.Name)
+    analysis.Document.recompute()

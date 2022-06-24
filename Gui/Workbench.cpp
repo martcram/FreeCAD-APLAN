@@ -94,7 +94,8 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     Gui::ToolBarItem *partFilters = new Gui::ToolBarItem(root);
     partFilters->setCommand("Part filters");
     *partFilters
-        << "APLAN_PartFilter";
+        << "APLAN_PartFilter"
+        << "APLAN_CompoundsPurge";
     
     Gui::ToolBarItem *connections = new Gui::ToolBarItem(root);
     connections->setCommand("Connections");

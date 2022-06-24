@@ -30,11 +30,32 @@ from .manager import CommandManager
 import FreeCAD
 if FreeCAD.GuiUp:
     import AplanGui
+    from aplantools import aplanutils
     import FreeCADGui
     from FreeCAD import Qt
 
 # Python command definitions
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
+
+
+class _CompoundsPurge(CommandManager):
+    "Purges all Compound and CompoundGroup objects of the active analysis"
+
+    def __init__(self) -> None:
+        super(_CompoundsPurge, self).__init__()
+        self.pixmap: str = "APLAN_CompoundsPurge"
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_CompoundsPurge",
+            "Purge compounds"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_CompoundsPurge",
+            "Purges all compounds and compound groups of the active analysis"
+        )
+        self.is_active = "with_compounds"
+
+    def Activated(self) -> None:
+        aplanutils.purgeCompounds(AplanGui.getActiveAnalysis())
 
 
 class _ConnectionDetectorSwellOCCT(CommandManager):
@@ -121,6 +142,7 @@ class _TopoConstraints(CommandManager):
         self.do_activated = "add_obj_on_gui_set_edit"
 
 
+FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())
 FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
 FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())

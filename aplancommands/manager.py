@@ -71,6 +71,12 @@ class CommandManager(object):
                 AplanGui.getActiveAnalysis() is not None
                 and self.active_analysis_in_active_doc()
             )
+        elif self.is_active == "with_compounds":
+            active = (
+                AplanGui.getActiveAnalysis() is not None
+                and self.active_analysis_in_active_doc()
+                and (self.compoundsPresent())
+            )
         return active
 
     def Activated(self):
@@ -87,6 +93,13 @@ class CommandManager(object):
             return True
         else:
             return False
+
+    def compoundsPresent(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        for group in analysis.CompoundGroupObjects:
+            if len(group.Group) > 0:
+                return True
+        return False
 
     # ****************************************************************************************
     # methods to add the objects to the document in FreeCADGui mode
