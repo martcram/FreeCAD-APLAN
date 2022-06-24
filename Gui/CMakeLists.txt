@@ -58,6 +58,8 @@ SET(AplanGui_SRCS_ViewProvider
     ViewProviderConnectionDetector.hpp
     ViewProviderPartFilter.cpp
     ViewProviderPartFilter.hpp
+    ViewProviderTopoConstraints.cpp
+    ViewProviderTopoConstraints.hpp
 )
 SOURCE_GROUP("ViewProvider" FILES ${AplanGui_SRCS_ViewProvider})
 

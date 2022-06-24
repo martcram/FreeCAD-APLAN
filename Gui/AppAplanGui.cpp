@@ -37,6 +37,7 @@
 #include <Mod/Aplan/Gui/ViewProviderCompound.hpp>
 #include <Mod/Aplan/Gui/ViewProviderCompoundGroup.hpp>
 #include <Mod/Aplan/Gui/ViewProviderConnectionDetector.hpp>
+#include <Mod/Aplan/Gui/ViewProviderTopoConstraints.hpp>
 #include <Mod/Aplan/Gui/Workbench.hpp>
 
 void CreateAplanCommands(void);
@@ -94,6 +95,9 @@ PyMOD_INIT_FUNC(AplanGui)
 
     AplanGui::ViewProviderPartFilter::init();
     AplanGui::ViewProviderPartFilterPython::init();
+
+    AplanGui::ViewProviderTopoConstraints::init();
+    AplanGui::ViewProviderTopoConstraintsPython::init();
 
     // add resources and reloads the translators
     loadAplanResource();

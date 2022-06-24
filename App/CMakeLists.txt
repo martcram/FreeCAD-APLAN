@@ -48,6 +48,8 @@ SET(AplanBase_SRCS
     AplanConnectionDetector.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
+    AplanTopoConstraints.cpp
+    AplanTopoConstraints.hpp
 )
 SOURCE_GROUP("Base types" FILES ${AplanBase_SRCS})
 
