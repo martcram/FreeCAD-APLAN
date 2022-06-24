@@ -370,8 +370,11 @@ class _TaskPanel(base.ITaskPanel):
 
 
 class SwellOCCTSolver:
-    def __init__(self, componentsDict: typing.Dict) -> None:
-        self._componentsDict = componentsDict
+    def __init__(self, components: typing.List) -> None:
+        self.setComponents(components)
+
+    def setComponents(self, components: typing.List) -> None:
+        self._componentsDict = {component.Label: component for component in components}
 
     def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.List:
         potentialConnections: typing.List = []
@@ -390,7 +393,8 @@ class SwellOCCTSolver:
                                     if boundBoxDict[comb[0]].intersect(boundBoxDict[comb[1]])]
         return potentialConnections
     
-    def solve(self, potentialConnections: typing.List, method: SolverMethod, configParam: typing.Dict) -> typing.Set[typing.Tuple]:
+    def solve(self, method: SolverMethod, configParam: typing.Dict, **kwargs) -> typing.Set[typing.Tuple]:
+        potentialConnections: typing.List = kwargs.get("potConnections", list(itertools.combinations(self._componentsDict.keys(), 2)))
         partPointsMeshDict: typing.Dict = {}
         partPointsSampleDict: typing.Dict = {}
 
@@ -457,7 +461,7 @@ class Worker(base.BaseWorker):
             configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
             solverMethod: SolverMethod = self._inputParams["solverMethod"]
             configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
-            solver: SwellOCCTSolver = SwellOCCTSolver(componentsDict)
+            solver: SwellOCCTSolver = SwellOCCTSolver(list(componentsDict.values()))
             
             self.progress.emit({"msg": "====== Refining ======",
                                 "type": base.MessageType.INFO})
@@ -484,7 +488,7 @@ class Worker(base.BaseWorker):
                                 "type": base.MessageType.INFO})
             time2: float = time.perf_counter()
         
-            topologicalConstraints: typing.Set[typing.Tuple] = solver.solve(potentialConnections, solverMethod, configParamSolver)
+            topologicalConstraints: typing.Set[typing.Tuple] = solver.solve(solverMethod, configParamSolver, potConnections=potentialConnections)
 
             time3: float = time.perf_counter()
             computationTime += time3-time2
