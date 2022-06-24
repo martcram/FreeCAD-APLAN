@@ -22,19 +22,21 @@
 # *                                                                         *
 # ***************************************************************************
 
-__title__ = ""
+__title__ = "FreeCAD APLAN SwellOCCT connection detector"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
 from aplantools import aplanutils
 try:
+    import Aplan
     import aplansolvers.aplan_connection_detectors.base_connection_detector as base
     import enum
     import FreeCAD
     import FreeCADGui
     import itertools
-    import ObjectsAplan
+    import MeshPart
     from PySide2 import QtCore, QtWidgets
+    import time
     import typing
 except ImportError as ie:
     aplanutils.missingPythonModule(str(ie.name or ""))
@@ -264,6 +266,14 @@ class _TaskPanel(base.ITaskPanel):
         self.obj.Document.recompute()
         return True
     
+    def __processOutput(self, output: typing.Dict) -> None:
+        self._computationTime = round(output.get("time", 0.0), 3)
+        self.form.l_time.setText("{} s".format(self._computationTime))
+        topoConstraints: typing.Set[str] = output.get("constraints", {})
+        if len(topoConstraints) > 0:
+            #TODO: add topological constraints object to active analysis
+            pass 
+
     def __readConfigFieldsRefinement(self) -> None:
         paramLabel: str
         for paramLabel, qWidgets in self._qWidgetDictRefinement.items():
@@ -274,8 +284,46 @@ class _TaskPanel(base.ITaskPanel):
         for paramLabel, qWidgets in self._qWidgetDictSolver.items():
             self.__dict__["_{}".format(paramLabel)] = qWidgets["value"].value()
 
+    def __reportProgress(self, progress: typing.Dict) -> None:
+        self.form.te_output.setTextColor(base.MessageType(progress["type"]).value)
+        self.form.te_output.append(progress["msg"])
+        self.form.te_output.setTextColor(base.MessageType.INFO.value)
+
     def __run(self) -> None:
-        pass
+        if self._solverThread is None or not self._solverThread.isRunning():
+            # Init
+            configParamRefinement: typing.Dict = {param: self.__dict__["_{}".format(param)] 
+                                                  for param in self._configParamRefinement.get(self._refinementMethod, set())}
+            configParamSolver: typing.Dict = {param: self.__dict__["_{}".format(param)] 
+                                              for param in self._configParamSolver.get(self._solverMethod, set())}
+            inputParams: typing.Dict = {"componentsDict": self._componentsDict,
+                                        "refinementMethod": self._refinementMethod,
+                                        "configParamRefinement": configParamRefinement,
+                                        "solverMethod": self._solverMethod,
+                                        "configParamSolver": configParamSolver}
+            self._solverThread = QtCore.QThread()
+            self._worker: Worker = Worker(inputParams)
+            self._worker.moveToThread(self._solverThread)
+
+            # Connect signals and slots
+            self._solverThread.started.connect(self._worker.run)
+            self._solverThread.finished.connect(self.__threadFinished)
+            self._solverThread.finished.connect(self._solverThread.deleteLater)
+            self._worker.progress.connect(self.__reportProgress)
+            self._worker.finished.connect(self.__processOutput)
+            self._worker.finished.connect(self._solverThread.quit)
+            self._worker.finished.connect(self._worker.deleteLater)
+            
+            # Start solver thread
+            self._solverThread.start()
+            self.__threadStarted()
+            
+        elif self._solverThread is not None and self._solverThread.isRunning() and self._worker.isRunning:
+            self.form.btn_run.setText("Terminating ...")
+            self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_TERMINATING))
+
+            self._worker.stop()
+            self._solverThread.quit()
 
     def __switchSolverMethod(self, solverMethod: str) -> None:
         for method in SolverMethod:
@@ -303,6 +351,15 @@ class _TaskPanel(base.ITaskPanel):
             for qWidget in self._qWidgetDictRefinement[param_].values():
                 qWidget.setHidden(False)
 
+    def __threadFinished(self) -> None:
+        self.form.btn_run.setText("Run")
+        self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_RUN))
+        self._solverThread = None
+
+    def __threadStarted(self) -> None:
+        self.form.btn_run.setText("Abort")
+        self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_ABORT))
+
     def __writeProperties(self) -> None:
         self.obj.RefinementMethod = self._refinementMethod.value[0]
         self.obj.SwellDistance = self._swellDistance
@@ -310,3 +367,150 @@ class _TaskPanel(base.ITaskPanel):
         self.obj.MinDistance = self._minDistance
         self.obj.SampleRate = self._sampleRate
         self.obj.Tolerance = self._tolerance
+
+
+class SwellOCCTSolver:
+    def __init__(self, componentsDict: typing.Dict) -> None:
+        self._componentsDict = componentsDict
+
+    def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.List:
+        potentialConnections: typing.List = []
+        if method == RefinementMethod.None_:
+            potentialConnections = [comb for comb in itertools.combinations(self._componentsDict.keys(), 2)]
+        elif method == RefinementMethod.BoundBox:
+            swellDistance: float = float(configParam["swellDistance"])
+            boundBoxDict: typing.Dict = {component.Label: FreeCAD.BoundBox((component.Shape.BoundBox.XMin-swellDistance/2),
+                                                                           (component.Shape.BoundBox.YMin-swellDistance/2),
+                                                                           (component.Shape.BoundBox.ZMin-swellDistance/2),
+                                                                           (component.Shape.BoundBox.XMax+swellDistance/2),
+                                                                           (component.Shape.BoundBox.YMax+swellDistance/2),
+                                                                           (component.Shape.BoundBox.ZMax+swellDistance/2))
+                                        for component in self._componentsDict.values()}
+            potentialConnections = [comb for comb in itertools.combinations(boundBoxDict.keys(), 2) 
+                                    if boundBoxDict[comb[0]].intersect(boundBoxDict[comb[1]])]
+        return potentialConnections
+    
+    def solve(self, potentialConnections: typing.List, method: SolverMethod, configParam: typing.Dict) -> typing.Set[typing.Tuple]:
+        partPointsMeshDict: typing.Dict = {}
+        partPointsSampleDict: typing.Dict = {}
+
+        topologicalConstraints: typing.Set[typing.Tuple] = set()
+        for potentialConnection in potentialConnections:
+            componentLabel1: str = potentialConnection[0]
+            componentLabel2: str = potentialConnection[1]
+            component1 = self._componentsDict[potentialConnection[0]]
+            component2 = self._componentsDict[potentialConnection[1]]
+
+            if method == SolverMethod.DistToShape:
+                if component1.Shape.distToShape(component2.Shape)[0] < float(configParam["minDistance"]):
+                    topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
+            elif method == SolverMethod.MeshInside:
+                smallestComponent, largestComponent = sorted([component1, component2], key=lambda c: c.Shape.Volume, reverse=False)
+                boundBox = smallestComponent.Shape.BoundBox
+                maxLength: float = min(boundBox.XLength, boundBox.YLength, boundBox.ZLength) * float(configParam["sampleRate"])
+                meshPoints: typing.List = []
+                if smallestComponent.Label not in partPointsMeshDict.keys():
+                    partPointsMeshDict[smallestComponent.Label] = MeshPart.meshFromShape(Shape=smallestComponent.Shape, MaxLength=maxLength).Points
+                meshPoints = partPointsMeshDict[smallestComponent.Label]
+                for p in meshPoints:
+                    if largestComponent.Shape.isInside(FreeCAD.Vector(p.x, p.y, p.z), float(configParam["tolerance"]), True):
+                        topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
+                        break
+            elif method == SolverMethod.GeoDataInside:
+                smallestComponent, largestComponent = sorted([component1, component2], key=lambda c: c.Shape.Volume, reverse=False)
+                boundBox = smallestComponent.Shape.BoundBox
+                distance: float = min(boundBox.XLength, boundBox.YLength, boundBox.ZLength) * float(configParam["sampleRate"])
+                samplePoints: typing.List = []
+                if smallestComponent.Label not in partPointsSampleDict.keys():
+                    partPointsSampleDict[smallestComponent.Label] = Aplan.pointSampleShape(smallestComponent.Label, distance)
+                samplePoints = partPointsSampleDict[smallestComponent.Label]
+                p_: typing.Tuple[float, float, float]
+                for p_ in samplePoints:
+                    if largestComponent.Shape.isInside(FreeCAD.Vector(p_[0], p_[1], p_[2]), float(configParam["tolerance"]), True):
+                        topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
+                        break
+            elif method == SolverMethod.Proximity:
+                overlappedSubShapes0, overlappedSubShapes1 = component1.Shape.proximity(component2.Shape, float(configParam["tolerance"]))
+                if len(overlappedSubShapes0) > 0 or len(overlappedSubShapes1) > 0:
+                    topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
+            elif method == SolverMethod.Section:
+                if len(component1.Shape.section(component2.Shape, False).Vertexes) > 0:
+                    topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
+        
+        return topologicalConstraints
+
+
+class Worker(base.BaseWorker):
+    def __init__(self, inputParams: typing.Dict) -> None:
+        super(Worker, self).__init__()
+        self._inputParams: typing.Dict = inputParams
+
+    def run(self) -> None:
+        self.progress.emit({"msg": ">>> STARTED",
+                            "type": base.MessageType.INFO})
+        self._isRunning = True
+        computationTime: float = 0.0
+
+        try:
+            componentsDict: typing.Dict = self._inputParams["componentsDict"]
+            refinementMethod: RefinementMethod = self._inputParams["refinementMethod"]
+            configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
+            solverMethod: SolverMethod = self._inputParams["solverMethod"]
+            configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
+            solver: SwellOCCTSolver = SwellOCCTSolver(componentsDict)
+            
+            self.progress.emit({"msg": "====== Refining ======",
+                                "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "Performing the {} refinement method".format(refinementMethod.value[0]),
+                                "type": base.MessageType.INFO})
+            time0: float = time.perf_counter()
+
+            potentialConnections: typing.List = solver.refine(refinementMethod, configParamRefinement)
+
+            time1: float = time.perf_counter()
+            computationTime += time1-time0
+            self.progress.emit({"msg": "Found {} potential connections".format(len(potentialConnections)),
+                                "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
+                                "type": base.MessageType.INFO})
+
+            if not self._isRunning:
+                self.__abort()
+                return
+
+            self.progress.emit({"msg": "====== Solving =======",
+                                "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "Performing the {} solver method".format(solverMethod.value[0]),
+                                "type": base.MessageType.INFO})
+            time2: float = time.perf_counter()
+        
+            topologicalConstraints: typing.Set[typing.Tuple] = solver.solve(potentialConnections, solverMethod, configParamSolver)
+
+            time3: float = time.perf_counter()
+            computationTime += time3-time2
+            self.progress.emit({"msg": "FOUND {} TOPOLOGICAL CONSTRAINT(S)".format(len(topologicalConstraints)),
+                                "type": base.MessageType.FOCUS})
+            self.progress.emit({"msg": "> Done: {:.3f}s".format(time3-time2),
+                                "type": base.MessageType.INFO})
+
+            if not self._isRunning:
+                self.__abort()
+                return
+
+            self.progress.emit({"msg": ">>> FINISHED",
+                                "type": base.MessageType.INFO})
+
+            self._isRunning = False
+            self.finished.emit({"time": computationTime,
+                                "constraints": topologicalConstraints})
+
+        except Exception as e:
+            self.progress.emit({"msg": ">>> ERROR\n{}\nERROR <<<".format(e),
+                                "type": base.MessageType.ERROR})
+            self.__abort()
+
+    def __abort(self) -> None:
+        self._isRunning = False
+        self.progress.emit({"msg": ">>> ABORTED",
+                            "type": base.MessageType.WARNING})
+        self.finished.emit({})
