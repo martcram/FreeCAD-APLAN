@@ -30,6 +30,8 @@ SOURCE_GROUP("Python" FILES ${Python_SRCS})
 SET(Mod_SRCS
     AppAplan.cpp
     AppAplanPy.cpp
+    AplanTools.cpp
+    AplanTools.hpp
     PreCompiled.cpp
     PreCompiled.hpp
 )
