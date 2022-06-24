@@ -41,6 +41,7 @@
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
+#include <Mod/Aplan/App/AplanTools.hpp>
 
 using namespace Aplan;
 using namespace App;
@@ -51,7 +52,12 @@ AplanAnalysis::AplanAnalysis()
 {
     Base::Uuid id;
     ADD_PROPERTY_TYPE(Uid, (id), 0, App::Prop_None, "UUID of the Analysis");
-    ADD_PROPERTY_TYPE(WorkingDir, (0), "Aplan", (App::PropertyType)(App::Prop_None), "Working directory of the Analysis");
+
+    std::string activeDocLoc{App::GetApplication().getActiveDocument()->FileName.getStrValue()};
+    std::vector<std::string> filePathComponents{Aplan::Tools::splitFilePath(activeDocLoc)};
+    filePathComponents.pop_back();
+    std::string defaultWorkingDir{Aplan::Tools::mergeIntoFilePath(filePathComponents)};
+    ADD_PROPERTY_TYPE(WorkingDir, (defaultWorkingDir), "Aplan", (App::PropertyType)(App::Prop_None), "Working directory of the Analysis");
 }
 
 AplanAnalysis::~AplanAnalysis()

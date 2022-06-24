@@ -65,8 +65,11 @@ TaskAplanAnalysis::~TaskAplanAnalysis()
 
 void TaskAplanAnalysis::chooseWorkingDir()
 {
+    Aplan::AplanAnalysis *analysis = static_cast<Aplan::AplanAnalysis *>(this->analysisView->getObject());
+    std::string workingDir{analysis->WorkingDir.getStrValue()};
+    QString dir = workingDir.empty() ? QDir::homePath() : QString::fromStdString(workingDir);
     QFileDialog::Options options = QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks;
-    QString qPath = QFileDialog::getExistingDirectory(0, tr("Choose APLAN working directory"), QDir::homePath(), options);
+    QString qPath = QFileDialog::getExistingDirectory(0, tr("Choose APLAN working directory"), dir, options);
     if (!qPath.isEmpty())
     {
         this->ui->le_working_dir->setText(qPath);
