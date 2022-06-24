@@ -45,6 +45,19 @@ class AplanWorkbench(Workbench):
         import Aplan
         import AplanGui
         import aplancommands.commands
+    
+    def Activated(self):
+        try:
+            from aplantools import aplanutils
+            from aplanwebapp import server
+            from webtest.http import StopableWSGIServer
+        except ImportError as ie:
+            aplanutils.missingPythonModule(str(ie.name or ""))
+        self.server = StopableWSGIServer.create(server.app, port=8080, host="0.0.0.0")
+
+    def Deactivated(self):
+        self.server.shutdown()
+        return
 
     def GetClassName(self):
         return "AplanGui::Workbench"

@@ -87,9 +87,24 @@ SET(AplanGuiViewProvider_SRCS
     aplanviewprovider/view_topo_constraints.py
 )
 
+SET(AplanGuiWebApp_SRCS
+    # CSS
+    aplanwebapp/static/css/error.css
+    # JS
+    aplanwebapp/static/js/error.js
+    # JSON
+    # HTML
+    aplanwebapp/templates/error_404.html
+    aplanwebapp/templates/error_500.html
+    # Python
+    aplanwebapp/__init__.py
+    aplanwebapp/server.py
+)
+
 SET(AplanAllGuiScripts
     ${AplanGuiTaskPanels_SRCS}
     ${AplanGuiViewProvider_SRCS}
+    ${AplanGuiWebApp_SRCS}
 )
 
 if(BUILD_GUI)
@@ -101,4 +116,5 @@ if(BUILD_GUI)
     # install directories for Python packages (for make install)
     INSTALL(FILES ${AplanGuiTaskPanels_SRCS} DESTINATION Mod/Aplan/aplantaskpanels/)
     INSTALL(FILES ${AplanGuiViewProvider_SRCS} DESTINATION Mod/Aplan/aplanviewprovider/)
+    INSTALL(FILES ${AplanGuiWebApp_SRCS} DESTINATION Mod/Aplan/aplanwebapp/)
 endif(BUILD_GUI)
