@@ -30,12 +30,17 @@
 #include <CXX/Extensions.hxx>
 #include <CXX/Objects.hxx>
 
-#include <Base/Console.h>
 #include <App/Application.h>
+#include <App/ComplexGeoData.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
-
+#include <App/GeoFeature.h>
+#include <App/PropertyGeo.h>
+#include <Base/Console.h>
+#include <Base/GeometryPyCXX.h>
+#include <Base/PyObjectBase.h>
+#include <Base/Vector3D.h>
 #include <Mod/Part/App/OCCError.h>
 
 namespace Aplan
@@ -45,6 +50,15 @@ namespace Aplan
     public:
         Module() : Py::ExtensionModule<Module>("Aplan")
         {
+            add_varargs_method("pointSampleShape",&Module::pointSampleShape,
+                "Creates a point cloud of a part's shape and returns the list of sampled points\n"
+                "\n"
+                "pointSampleShape(label, distance) -> list\n"
+                "\n"
+                "Args:\n"
+                "    label (required, string): the label of the part to sample\n"
+                "    distance (required, float): the maximum distance between the sampled points\n"
+            );
             initialize("This module is the APLAN module."); // register with Python
         }
 
@@ -82,6 +96,41 @@ namespace Aplan
                 throw Py::RuntimeError(e.what());
             }
         }
+
+        Py::Object pointSampleShape(const Py::Tuple& args)
+        {
+            const char *label{};
+            double distance{0.0};
+            if (!PyArg_ParseTuple(args.ptr(), "sd", &label, &distance))
+            {
+                throw Py::Exception(Base::BaseExceptionFreeCADError, "pointSampleShape: 1st parameter must be a string, 2nd parameter must be a float.");
+            }
+
+            std::vector<Base::Vector3d> vertices{};
+            std::vector<App::DocumentObject *> objects = App::GetApplication().getActiveDocument()->getObjects();
+            for (std::vector<App::DocumentObject *>::iterator it = objects.begin(); it != objects.end(); ++it)
+            {
+                if ((*it)->Label.getStrValue() == label)
+                {
+                    const App::PropertyComplexGeoData *prop = static_cast<App::GeoFeature *>(*it)->getPropertyOfGeometry();
+                    if (prop)
+                    {
+                        const Data::ComplexGeoData *data = prop->getComplexData();
+                        std::vector<Base::Vector3d> normals;
+                        data->getPoints(vertices, normals, static_cast<float>(distance));
+                    }
+                    break;
+                }
+            }
+
+            Py::List pyVertices;
+            for (Base::Vector3d vertex : vertices)
+            {
+                pyVertices.append(Py::Vector(vertex));
+            }
+            return pyVertices;
+        }
+
     };
 
     PyObject *initModule()
