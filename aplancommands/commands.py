@@ -83,6 +83,26 @@ class _ConnectionDetectorSwellOCCT(CommandManager):
                 and not objectExists)
 
 
+class _ConstraintsPurge(CommandManager):
+    "Purges all ConstraintGroup objects and their constraints of the active analysis"
+
+    def __init__(self) -> None:
+        super(_ConstraintsPurge, self).__init__()
+        self.pixmap: str = "APLAN_ConstraintsPurge"
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ConstraintsPurge",
+            "Purge constraints"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ConstraintsPurge",
+            "Purges all constraints and constraint groups of the active analysis"
+        )
+        self.is_active = "with_constraints"
+
+    def Activated(self) -> None:
+        aplanutils.purgeConstraints(AplanGui.getActiveAnalysis())
+
+
 class _PartFilter(CommandManager):
     "..."
 
@@ -144,6 +164,7 @@ class _TopoConstraints(CommandManager):
 
 FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())
 FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
+FreeCADGui.addCommand("APLAN_ConstraintsPurge",            _ConstraintsPurge())
 FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())
 FreeCADGui.addCommand("APLAN_TopoConstraints",             _TopoConstraints())

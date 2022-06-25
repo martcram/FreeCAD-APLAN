@@ -77,6 +77,12 @@ class CommandManager(object):
                 and self.active_analysis_in_active_doc()
                 and (self.compoundsPresent())
             )
+        elif self.is_active == "with_constraints":
+            active = (
+                AplanGui.getActiveAnalysis() is not None
+                and self.active_analysis_in_active_doc()
+                and (self.constraintsPresent())
+            )
         return active
 
     def Activated(self):
@@ -97,6 +103,13 @@ class CommandManager(object):
     def compoundsPresent(self) -> bool:
         analysis = AplanGui.getActiveAnalysis()
         for group in analysis.CompoundGroupObjects:
+            if len(group.Group) > 0:
+                return True
+        return False
+
+    def constraintsPresent(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        for group in analysis.ConstraintGroupObjects:
             if len(group.Group) > 0:
                 return True
         return False
