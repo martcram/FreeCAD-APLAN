@@ -46,6 +46,8 @@ SET(AplanBase_SRCS
     AplanCompoundGroup.hpp
     AplanConnectionDetector.cpp
     AplanConnectionDetector.hpp
+    AplanConstraintGroup.cpp
+    AplanConstraintGroup.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
     AplanTopoConstraints.cpp

@@ -35,6 +35,7 @@
 #include <Mod/Aplan/App/AplanCompound.hpp>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
+#include <Mod/Aplan/App/AplanConstraintGroup.hpp>
 #include <Mod/Aplan/App/AplanTopoConstraints.hpp>
 
 namespace Aplan
@@ -75,6 +76,9 @@ PyMOD_INIT_FUNC(Aplan)
     Aplan::PartFilter::init();
     Aplan::PartFilterPython::init();
 
+    Aplan::AplanConstraintGroup::init();
+    Aplan::AplanConstraintGroupPython::init();
+    
     Aplan::TopoConstraints::init();
     Aplan::TopoConstraintsPython::init();
 

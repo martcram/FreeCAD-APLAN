@@ -37,6 +37,7 @@
 #include <Mod/Aplan/Gui/ViewProviderCompound.hpp>
 #include <Mod/Aplan/Gui/ViewProviderCompoundGroup.hpp>
 #include <Mod/Aplan/Gui/ViewProviderConnectionDetector.hpp>
+#include <Mod/Aplan/Gui/ViewProviderConstraintGroup.hpp>
 #include <Mod/Aplan/Gui/ViewProviderTopoConstraints.hpp>
 #include <Mod/Aplan/Gui/Workbench.hpp>
 
@@ -92,6 +93,9 @@ PyMOD_INIT_FUNC(AplanGui)
 
     AplanGui::ViewProviderConnectionDetector::init();
     AplanGui::ViewProviderConnectionDetectorPython::init();
+
+    AplanGui::ViewProviderConstraintGroup::init();
+    AplanGui::ViewProviderConstraintGroupPython::init();
 
     AplanGui::ViewProviderPartFilter::init();
     AplanGui::ViewProviderPartFilterPython::init();
