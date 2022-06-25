@@ -29,13 +29,13 @@ __author__ = "Martijn Cramer, Przemo Firszt, Bernd Hahnebach"
 __url__ = "https://www.freecadweb.org"
 
 
-from typing import Dict
+from aplanwebapp import browser
 import FreeCAD
-
 if FreeCAD.GuiUp:
     import AplanGui
     import FreeCADGui
     from PySide import QtCore
+from typing import Dict
 
 
 class CommandManager(object):
@@ -113,6 +113,16 @@ class CommandManager(object):
             if len(group.Group) > 0:
                 return True
         return False
+
+    def editObjectInBrowser(self, obj) -> None:
+        url: str = "http://0.0.0.0:8080/aplan/connection_graph?fileLoc={}".format(
+            obj.FileLocation)
+        browser.getBrowser().setUrl(url)
+        browser.show()
+
+        FreeCADGui.doCommand(
+            "FreeCADGui.ActiveDocument.setEdit('{}')".format(obj.Name))
+        FreeCAD.ActiveDocument.recompute()
 
     # ****************************************************************************************
     # methods to add the objects to the document in FreeCADGui mode

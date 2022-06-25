@@ -27,12 +27,13 @@ __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
 from .manager import CommandManager
+from aplantools import aplanutils
 import FreeCAD
 if FreeCAD.GuiUp:
     import AplanGui
-    from aplantools import aplanutils
     import FreeCADGui
     from FreeCAD import Qt
+import ObjectsAplan
 
 # Python command definitions
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
@@ -146,7 +147,7 @@ class _ToggleTransparency(CommandManager):
 
 
 class _TopoConstraints(CommandManager):
-    "Computes the topological constraints of the selected parts"
+    "Creates a topological constraints object"
 
     def __init__(self):
         super(_TopoConstraints, self).__init__()
@@ -156,10 +157,14 @@ class _TopoConstraints(CommandManager):
         )
         self.tooltip = Qt.QT_TRANSLATE_NOOP(
             "APLAN_TopoConstraints",
-            "Computes the topological constraints of the selected parts"
+            "Creates a topological constraints object"
         )
         self.is_active = "with_analysis"
         self.do_activated = "add_obj_on_gui_set_edit"
+    
+    def Activated(self) -> None:
+        obj = ObjectsAplan.makeTopoConstraints(AplanGui.getActiveAnalysis())
+        self.editObjectInBrowser(obj)
 
 
 FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())

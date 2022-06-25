@@ -88,8 +88,7 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     model->setCommand("Model");
     *model << "APLAN_Analysis"
            << "Separator"
-           << "APLAN_ToggleTransparency"
-           << "APLAN_TopoConstraints";
+           << "APLAN_ToggleTransparency";
 
     Gui::ToolBarItem *partFilters = new Gui::ToolBarItem(root);
     partFilters->setCommand("Part filters");
@@ -100,6 +99,7 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     Gui::ToolBarItem *connections = new Gui::ToolBarItem(root);
     connections->setCommand("Connections");
     *connections
+        << "APLAN_TopoConstraints"
         << "APLAN_ConnectionDetectorSwellOCCT";
 
     Gui::ToolBarItem* results = new Gui::ToolBarItem(root);

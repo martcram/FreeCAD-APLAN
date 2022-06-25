@@ -73,11 +73,12 @@ def makePartFilter(doc, name="PartFilter"):
     return obj
 
 
-def makeTopoConstraints(doc, name="TopoConstraints"):
-    """makeTopoConstraints(document, [name]):
+def makeTopoConstraints(analysis, constraints: typing.Set[typing.Tuple[str, str]] = set(), name="TopoConstraints"):
+    """makeTopoConstraints(analysis, constraints, [name]):
     makes an APLAN TopoConstraints object"""
     import aplanobjects.topo_constraints
-    obj = aplanobjects.topo_constraints.create(doc, name)
+    obj = aplanobjects.topo_constraints.create(
+        FreeCAD.ActiveDocument, analysis, constraints, name)
     return obj
 
 
