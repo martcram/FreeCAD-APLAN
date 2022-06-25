@@ -124,6 +124,13 @@ class CommandManager(object):
             "FreeCADGui.ActiveDocument.setEdit('{}')".format(obj.Name))
         FreeCAD.ActiveDocument.recompute()
 
+    def objectSelected(self, type: str) -> bool:
+        sel = FreeCADGui.Selection.getSelection()
+        if len(sel) == 1 and sel[0].isDerivedFrom(type):
+            self.selobj = sel[0]
+            return True
+        return False
+
     # ****************************************************************************************
     # methods to add the objects to the document in FreeCADGui mode
 

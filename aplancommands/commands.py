@@ -167,9 +167,35 @@ class _TopoConstraints(CommandManager):
         self.editObjectInBrowser(obj)
 
 
+class _TopoConstraintsInspect(CommandManager):
+    "Opens up an interactive view to inspect the topological constraints"
+
+    def __init__(self) -> None:
+        super(_TopoConstraintsInspect, self).__init__()
+        self.pixmap: str = "APLAN_TopoConstraintsInspect"
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_TopoConstraintsInspect",
+            "Topological constraints"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_TopoConstraintsInspect",
+            "Opens up an interactive view to inspect the topological constraints"
+        )
+
+    def IsActive(self) -> bool:
+        return (FreeCADGui.ActiveDocument is not None
+                and self.objectSelected("Aplan::TopoConstraints"))
+
+    def Activated(self) -> None:
+        selection = FreeCADGui.Selection.getSelection()
+        if len(selection) == 1 and selection[0].isDerivedFrom("Aplan::TopoConstraints"):
+            self.editObjectInBrowser(selection[0])
+
+
 FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())
 FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
 FreeCADGui.addCommand("APLAN_ConstraintsPurge",            _ConstraintsPurge())
 FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())
 FreeCADGui.addCommand("APLAN_TopoConstraints",             _TopoConstraints())
+FreeCADGui.addCommand("APLAN_TopoConstraintsInspect",      _TopoConstraintsInspect())
