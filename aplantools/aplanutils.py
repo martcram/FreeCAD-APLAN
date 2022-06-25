@@ -100,6 +100,24 @@ def getCompoundGroup(analysis):
         return groupObjects[0]
 
 
+def getConstraintGroup(analysis): # if no constraints container is present, one will be created
+    """Returns the first ConstraintGroup of the corresponding analysis.
+    If no ConstraintGroup is present, one will be added to the analysis.
+
+    :param analysis: the analysis object
+    :type analysis: `AplanAnalysis`
+    :return: the constraint group object
+    :rtype: `AplanConstraintGroup`
+    """
+    groupObjects = analysis.ConstraintGroupObjects
+    if not groupObjects:
+        constraintGroup = ObjectsAplan.makeConstraintGroup(FreeCAD.ActiveDocument)
+        analysis.addObject(constraintGroup)
+        return constraintGroup
+    else:
+        return groupObjects[0]
+
+
 def missingPythonModule(name: str) -> None:
     """Displays a QMessageBox stating that a dependency is missing and 
     asking the user to install the absent Python module.
@@ -110,6 +128,7 @@ def missingPythonModule(name: str) -> None:
     QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), 
         "Missing dependency", "Please install the following Python module: {}".format(name))
 
+
 def purgeCompounds(analysis) -> None:
     """Removes all Compound and CompoundGroup objects of the specified analysis.
 
@@ -119,5 +138,18 @@ def purgeCompounds(analysis) -> None:
     for group in analysis.CompoundGroupObjects:
         for compound in group.Group:
             analysis.Document.removeObject(compound.Name)
+        analysis.Document.removeObject(group.Name)
+    analysis.Document.recompute()
+
+
+def purgeConstraints(analysis):
+    """Removes all ConstraintGroup objects and their constraints of the specified analysis.
+
+    :param analysis: the analysis object
+    :type analysis: `AplanAnalysis`
+    """
+    for group in analysis.ConstraintGroupObjects:
+        for obj in group.Group:
+            analysis.Document.removeObject(obj.Name)
         analysis.Document.removeObject(group.Name)
     analysis.Document.recompute()

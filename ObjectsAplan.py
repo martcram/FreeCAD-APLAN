@@ -58,6 +58,13 @@ def makeCompoundGroup(doc, name="Compounds"):
     return obj
 
 
+def makeConstraintGroup(doc, name="Constraints"):
+    """makeConstraintGroup(document, [name]):
+    makes an APLAN constraint group object"""
+    obj = doc.addObject("Aplan::AplanConstraintGroup", name)
+    return obj
+
+
 def makePartFilter(doc, name="PartFilter"):
     """makePartFilter(document, [name]):
     makes an APLAN PartFilter object"""
