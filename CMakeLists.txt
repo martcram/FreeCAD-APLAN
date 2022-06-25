@@ -29,6 +29,7 @@ SET(AplanObjects_SRCS
     aplanobjects/__init__.py
     aplanobjects/base_aplanpythonobject.py
     aplanobjects/compound.py
+    aplanobjects/graphs.py
     aplanobjects/part_filter.py
     aplanobjects/topo_constraints.py
 )
