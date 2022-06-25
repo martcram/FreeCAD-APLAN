@@ -104,6 +104,7 @@ SET(AplanGuiPythonUI_SRCS
     Resources/ui/aplan_connection_detectors/SwellOCCT.ui
     Resources/ui/ExcludeParts.ui
     Resources/ui/GroupParts.ui
+    Resources/ui/TopoConstraints.ui
 )
 
 ADD_CUSTOM_TARGET(AplanPythonUi ALL

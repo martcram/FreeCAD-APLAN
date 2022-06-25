@@ -33,6 +33,8 @@ __url__ = "https://www.freecadweb.org"
 
 from aplantools import aplanutils
 try:
+    from aplantaskpanels import task_topo_constraints
+    import FreeCADGui
     from pivy import coin
 except ImportError as ie:
     aplanutils.missingPythonModule(str(ie.name or ""))
@@ -101,9 +103,12 @@ class VPTopoConstraints:
         return []
 
     def setEdit(self, vobj, mode=0):
+        task = task_topo_constraints._TaskPanel(vobj.Object)
+        FreeCADGui.Control.showDialog(task)
         return True
 
     def unsetEdit(self, vobj, mode=0):
+        FreeCADGui.Control.closeDialog()
         return True
 
     def doubleClicked(self, vobj):
