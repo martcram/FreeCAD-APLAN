@@ -1,7 +1,7 @@
 # ***************************************************************************
 # *                                                                         *
 # *   Copyright (c) 2015 Bernd Hahnebach <bernd@bimstatik.org>              *
-# *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+# *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
 # *                                                                         *
 # *   This file is part of the FreeCAD CAx development system.              *
 # *                                                                         *
@@ -27,18 +27,18 @@ __title__ = "ViewProvider for the FreeCAD APLAN TopoConstraints object"
 __author__ = "Martijn Cramer, Bernd Hahnebach"
 __url__ = "https://www.freecadweb.org"
 
-## @package view_topo_constraints
+# @package view_topo_constraints
 #  \ingroup APLAN
 #  \brief view provider for TopoConstraints object
 
-import FreeCADGui
+from aplantools import aplanutils
+try:
+    from pivy import coin
+except ImportError as ie:
+    aplanutils.missingPythonModule(str(ie.name or ""))
 
-from pivy import coin
 
-# from aplantaskpanels import task_topo_constraints
-
-
-class ViewProviderTopoConstraints:
+class VPTopoConstraints:
     """ViewProvider of the TopoConstraints object."""
 
     def __init__(self, vobj):
@@ -53,7 +53,7 @@ class ViewProviderTopoConstraints:
         Setup the scene sub-graph of the view provider, this method is mandatory
         """
         self.default = coin.SoGroup()
-        vobj.addDisplayMode(self.default,"Default")
+        vobj.addDisplayMode(self.default, "Default")
         self.Object = vobj.Object
 
     def updateData(self, fp, prop):
@@ -86,7 +86,7 @@ class ViewProviderTopoConstraints:
         """
         Print the name of the property that has changed
         """
-        # App.Console.PrintMessage("Change property: " + str(prop) + "\n")
+        return None
 
     def getIcon(self):
         """
@@ -101,27 +101,14 @@ class ViewProviderTopoConstraints:
         return []
 
     def setEdit(self, vobj, mode=0):
-        # task = task_topo_constraints._TaskPanel(vobj.Object)
-        # FreeCADGui.Control.showDialog(task)
         return True
 
     def unsetEdit(self, vobj, mode=0):
-        FreeCADGui.Control.closeDialog()
         return True
-    
+
     def doubleClicked(self, vobj):
-        guidoc = FreeCADGui.getDocument(vobj.Object.Document)
-        # check if another VP is in edit mode
-        # https://forum.freecadweb.org/viewtopic.php?t=13077#p104702
-        if not guidoc.getInEdit():
-            guidoc.setEdit(vobj.Object.Name)
-        else:
-            from PySide.QtGui import QMessageBox
-            message = "Active Task Dialog found! Please close this one before opening a new one!"
-            QMessageBox.critical(None, "Error in tree view", message)
-            FreeCAD.Console.PrintError(message + "\n")
         return True
-    
+
     def __getstate__(self):
         """
         Called during document saving.

@@ -1,7 +1,7 @@
 # ***************************************************************************
 # *                                                                         *
 # *   Copyright (c) 2020 Bernd Hahnebach <bernd@bimstatik.org>              *
-# *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+# *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
 # *                                                                         *
 # *   This file is part of the FreeCAD CAx development system.              *
 # *                                                                         *
@@ -27,27 +27,46 @@ __title__ = "FreeCAD APLAN topological constraints object"
 __author__ = "Martijn Cramer, Bernd Hahnebach"
 __url__ = "https://www.freecadweb.org"
 
-## @package topo_constraints
+# @package topo_constraints
 #  \ingroup APLAN
 #  \brief FreeCAD APLAN topological constraints object
 
-import FreeCAD
+from aplantools import aplanutils
+try:
+    from aplanobjects import graphs
+    from aplanviewprovider.view_topo_constraints import VPTopoConstraints
+    import FreeCAD
+    import typing
+except ImportError as ie:
+    aplanutils.missingPythonModule(str(ie.name or ""))
 
-from . import base_aplanpythonobject
-from aplanviewprovider.view_topo_constraints import ViewProviderTopoConstraints
 
-
-def create(doc, name="TopoConstraints"):
+def create(doc, analysis, constraints: typing.Set[typing.Tuple[str, str]], name="TopoConstraints"):
     obj = doc.addObject(TopoConstraints.BaseType, name)
-    TopoConstraints(obj)
+    aplanutils.getConstraintGroup(analysis).addObject(obj)
+    TopoConstraints(obj, analysis, constraints)
     if FreeCAD.GuiUp:
-        ViewProviderTopoConstraints(obj.ViewObject)
+        VPTopoConstraints(obj.ViewObject)
     return obj
 
 
-class TopoConstraints(base_aplanpythonobject.BaseAplanPythonObject):
-    
-    Type = "App::DocumentObject"
+class TopoConstraints:
+    BaseType = "Aplan::TopoConstraintsPython"
 
-    def __init__(self, obj):
-        super(TopoConstraints, self).__init__(obj)
+    def __init__(self, obj, analysis, constraints: typing.Set[typing.Tuple[str, str]]) -> None:
+        obj.Proxy = self
+        if hasattr(obj, "FileLocation"):
+            obj.FileLocation = "{}/{}.json".format(analysis.WorkingDir, obj.Label)
+
+            conGraph: graphs.ConnectionGraph = graphs.ConnectionGraph()
+            if len(constraints) == 0:
+                conGraph.add_nodes_from([component.Label for component in analysis.Components])
+            else:
+                conGraph.add_edges_from(constraints)
+            conGraph.exportToFile(obj.FileLocation)
+
+    def __getstate__(self) -> None:
+        return None
+
+    def __setstate__(self, state) -> None:
+        return None
