@@ -41,11 +41,15 @@ namespace Aplan
         AplanConstraintGroup();
         virtual ~AplanConstraintGroup();
 
+        std::vector<Aplan::TopoConstraints *> getTopoConstraintsObjects(void) const;
+
         // Returns the type name of the ViewProvider
         const char *getViewProviderName(void) const
         {
             return "AplanGui::ViewProviderConstraintGroup";
         }
+
+        PyObject *getPyObject(void);
     };
 
     typedef App::FeaturePythonT<AplanConstraintGroup> AplanConstraintGroupPython;

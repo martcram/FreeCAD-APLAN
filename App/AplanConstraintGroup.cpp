@@ -28,6 +28,8 @@
 #include <App/DocumentObjectGroupPy.h>
 #include <App/FeaturePythonPyImp.h>
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
+#include <Mod/Aplan/App/AplanConstraintGroupPy.h>
+#include <Mod/Aplan/App/AplanTopoConstraints.hpp>
 
 using namespace Aplan;
 
@@ -41,6 +43,29 @@ AplanConstraintGroup::~AplanConstraintGroup()
 {
 }
 
+std::vector<Aplan::TopoConstraints *> AplanConstraintGroup::getTopoConstraintsObjects(void) const
+{
+    std::vector<Aplan::TopoConstraints *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::TopoConstraints::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::TopoConstraints *>(obj));
+        }
+    }
+    return objects;
+}
+
+PyObject *AplanConstraintGroup::getPyObject()
+{
+    if (PythonObject.is(Py::_None()))
+    {
+        // ref counter is set to 1
+        PythonObject = Py::Object(new AplanConstraintGroupPy(this), true);
+    }
+    return Py::new_reference_to(PythonObject);
+}
+
 // Python feature ---------------------------------------------------------
 
 namespace App
@@ -51,6 +76,17 @@ namespace App
     const char *Aplan::AplanConstraintGroupPython::getViewProviderName(void) const
     {
         return "AplanGui::ViewProviderAplanConstraintGroupPython";
+    }
+
+    template <>
+    PyObject *Aplan::AplanConstraintGroupPython::getPyObject(void)
+    {
+        if (PythonObject.is(Py::_None()))
+        {
+            // ref counter is set to 1
+            PythonObject = Py::Object(new App::FeaturePythonPyT<App::DocumentObjectGroupPy>(this), true);
+        }
+        return Py::new_reference_to(PythonObject);
     }
 
     // explicit template instantiation

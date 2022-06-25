@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenerateModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="generateMetaModel_Module.xsd">
+    <PythonExport
+            Father="DocumentObjectGroupPy"
+            Name="AplanConstraintGroupPy"
+            Twin="AplanConstraintGroup"
+            TwinPointer="AplanConstraintGroup"
+            Include="Mod/Aplan/App/AplanConstraintGroup.hpp"
+            Namespace="Aplan"
+            FatherInclude="App/DocumentObjectGroupPy.h"
+            FatherNamespace="App">
+        <Documentation>
+            <Author Licence="LGPL" Name="Martijn Cramer" EMail="martijn.cramer@outlook.com" />
+            <UserDocu>AplanConstraintGroup class</UserDocu>
+        </Documentation>
+        <Attribute Name="TopoConstraintsObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all TopoConstraints objects contained in the corresponding AplanConstraintGroup</UserDocu>
+            </Documentation>
+            <Parameter Name="TopoConstraintsObjects" Type="List"/>
+        </Attribute>
+    </PythonExport>
+</GenerateModel>
