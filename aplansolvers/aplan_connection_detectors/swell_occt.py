@@ -35,6 +35,7 @@ try:
     import FreeCADGui
     import itertools
     import MeshPart
+    import ObjectsAplan
     from PySide2 import QtCore, QtWidgets
     import time
     import typing
@@ -271,8 +272,7 @@ class _TaskPanel(base.ITaskPanel):
         self.form.l_time.setText("{} s".format(self._computationTime))
         topoConstraints: typing.Set[str] = output.get("constraints", {})
         if len(topoConstraints) > 0:
-            #TODO: add topological constraints object to active analysis
-            pass 
+            ObjectsAplan.makeTopoConstraints(self._analysis, topoConstraints)
 
     def __readConfigFieldsRefinement(self) -> None:
         paramLabel: str
