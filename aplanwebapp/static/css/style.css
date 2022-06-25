@@ -1,0 +1,35 @@
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+    vertical-align: top;
+    overflow: hidden;
+}
+
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.link {
+    stroke: #000;
+    stroke-width: 3px;
+    cursor: pointer;
+}
+
+.node text {
+    fill: #000;
+    font: 16px sans-serif;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.node circle {
+    stroke: #000;
+    stroke-width: 3px;
+    fill: #fff;
+    cursor: pointer;
+}

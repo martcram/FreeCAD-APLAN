@@ -90,10 +90,14 @@ SET(AplanGuiViewProvider_SRCS
 SET(AplanGuiWebApp_SRCS
     # CSS
     aplanwebapp/static/css/error.css
+    aplanwebapp/static/css/style.css
     # JS
+    aplanwebapp/static/js/connection_graph.js
     aplanwebapp/static/js/error.js
     # JSON
+    aplanwebapp/static/json/config_params.json
     # HTML
+    aplanwebapp/templates/connection_graph.html
     aplanwebapp/templates/error_404.html
     aplanwebapp/templates/error_500.html
     # Python

@@ -1,0 +1,104 @@
+{
+    "force_simulation": {
+        "init_scale": "2.0",
+        "gravity": "0.05",
+        "distance": "200",
+        "charge": "-500"
+    },
+    "node": {
+        "default": {
+            "radius": "15",
+            "colour": "black",
+            "stroke_width": "3px",
+            "stroke_opacity": "1.0"
+        },
+        "highlight": {
+            "colour": "blue",
+            "stroke_width": "3px",
+            "stroke_opacity": "1.0"
+        },
+        "unhighlight": {
+            "colour": "black",
+            "stroke_width": "3px",
+            "stroke_opacity": "0.2"
+        },
+        "select": {
+            "colour": "green",
+            "stroke_width": "3px",
+            "stroke_opacity": "1.0"
+        }
+    },
+    "label": {
+        "default": {
+            "dx": "22",
+            "dy": "0.35em",
+            "colour": "black",
+            "font_weight": "normal",
+            "opacity": "1.0"
+        },
+        "highlight": {
+            "colour": "blue",
+            "font_weight": "bold",
+            "opacity": "1.0"
+        },
+        "unhighlight": {
+            "colour": "black",
+            "font_weight": "normal",
+            "opacity": "0.2"
+        },
+        "select": {
+            "colour": "green",
+            "font_weight": "bold",
+            "opacity": "1.0"
+        }
+    },
+    "link": {
+        "default": {
+            "colour": "black",
+            "width": "3px",
+            "opacity": "1.0",
+            "marker_end": "arrowHead"
+        },
+        "highlight": {
+            "colour": "blue",
+            "width": "3px",
+            "opacity": "1.0",
+            "marker_end": "highlightedArrowHead"
+        },
+        "unhighlight": {
+            "colour": "black",
+            "width": "3px",
+            "opacity": "0.2",
+            "marker_end": "arrowHead"
+        },
+        "select": {
+            "colour": "red",
+            "width": "3px",
+            "opacity": "1.0",
+            "marker_end": "selectedArrowHead"
+        }
+    },
+    "arrow_head": {
+        "default": {
+            "ref_x": "19",
+            "ref_y": "0",
+            "marker_width": "5",
+            "marker_height": "5",
+            "fill": "black"
+        },
+        "highlight": {
+            "ref_x": "19",
+            "ref_y": "0",
+            "marker_width": "5",
+            "marker_height": "5",
+            "fill": "blue"
+        },
+        "select": {
+            "ref_x": "19",
+            "ref_y": "0",
+            "marker_width": "5",
+            "marker_height": "5",
+            "fill": "red"
+        }
+    }
+}
