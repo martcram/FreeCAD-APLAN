@@ -47,6 +47,24 @@ std::string AplanAnalysisPy::representation(void) const
 
 // ===== Methods ============================================================
 
+Py::List AplanAnalysisPy::getComponents(void) const
+{
+    Py::List pyObjects;
+    try
+    {
+        std::vector<App::DocumentObject *> objects = getAplanAnalysisPtr()->getComponents();
+        for (App::DocumentObject *o : objects)
+        {
+            pyObjects.append(Py::Object(o->getPyObject()));
+        }
+    }
+    catch (const std::exception &e)
+    {
+        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+    }
+    return pyObjects;
+}
+
 Py::List AplanAnalysisPy::getCompoundGroupObjects(void) const
 {
     Py::List pyObjects;

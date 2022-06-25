@@ -47,6 +47,7 @@ namespace Aplan
         AplanAnalysis();
         virtual ~AplanAnalysis();
 
+        std::vector<App::DocumentObject *> getComponents(void) const;
         std::vector<Aplan::AplanCompoundGroup *> getCompoundGroupObjects(void) const;
         std::vector<Aplan::ConnectionDetector *> getConnectionDetectorObjects(void) const;
         std::vector<Aplan::AplanConstraintGroup *> getConstraintGroupObjects(void) const;

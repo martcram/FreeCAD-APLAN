@@ -13,6 +13,13 @@
             <Author Licence="LGPL" Name="Martijn Cramer" EMail="martijn.cramer@outlook.com" />
             <UserDocu>AplanAnalysis class</UserDocu>
         </Documentation>
+        <Attribute Name="Components" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all PartFeature and AplanCompound objects contained in the corresponding AplanAnalysis,
+                          taking excluded and compounded parts into account</UserDocu>
+            </Documentation>
+            <Parameter Name="Components" Type="List"/>
+        </Attribute>
         <Attribute Name="CompoundGroupObjects" ReadOnly="true">
             <Documentation>
                 <UserDocu>List of all AplanCompoundGroup objects contained in the corresponding AplanAnalysis</UserDocu>

@@ -43,6 +43,7 @@
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanTools.hpp>
+#include <Mod/Part/App/PartFeature.h>
 
 using namespace Aplan;
 using namespace App;
@@ -73,6 +74,46 @@ PyObject *AplanAnalysis::getPyObject()
         PythonObject = Py::Object(new AplanAnalysisPy(this), true);
     }
     return Py::new_reference_to(PythonObject);
+}
+
+std::vector<App::DocumentObject *> AplanAnalysis::getComponents(void) const
+{
+    std::set<App::DocumentObject *> excludedParts{};
+    std::set<App::DocumentObject *> groupedParts{};
+    std::set<App::DocumentObject *> compounds{};
+    for (const auto &partFilter : this->getPartFilterObjects())
+    {
+        std::vector<App::DocumentObject *> excludedParts_{partFilter->ExcludedParts.getValues()};
+        std::copy(excludedParts_.begin(), excludedParts_.end(), std::inserter(excludedParts, excludedParts.end()));
+
+        std::vector<App::DocumentObject *> compounds_{partFilter->Compounds.getValues()};
+        std::copy(compounds_.begin(), compounds_.end(), std::inserter(compounds, compounds.end()));
+        std::for_each(compounds_.begin(), compounds_.end(),
+                      [&groupedParts](App::DocumentObject *compound)
+                      {
+                          std::vector<App::DocumentObject *> groupedParts_{static_cast<Aplan::Compound *>(compound)->Links.getValues()};
+                          std::copy(groupedParts_.begin(), groupedParts_.end(), std::inserter(groupedParts, groupedParts.end()));
+                      });
+    }
+
+    App::Document *doc = App::GetApplication().getActiveDocument();
+    std::vector<App::DocumentObject *> parts = doc->getObjectsOfType(Part::Feature::getClassTypeId());
+    parts.erase(std::remove_if(parts.begin(), parts.end(),
+                               [&compounds](App::DocumentObject *part)
+                               {
+                                   return (std::find(compounds.begin(), compounds.end(), part) != compounds.end());
+                               }),
+                parts.end());
+
+    std::vector<App::DocumentObject *> components{compounds.begin(), compounds.end()};
+    std::copy_if(parts.begin(), parts.end(), std::back_inserter(components),
+                 [&excludedParts, &groupedParts](App::DocumentObject *part)
+                 {
+                     return (std::find(excludedParts.begin(), excludedParts.end(), part) == excludedParts.end() &&
+                             std::find(groupedParts.begin(), groupedParts.end(), part) == groupedParts.end());
+                 });
+
+    return components;
 }
 
 std::vector<Aplan::AplanCompoundGroup *> AplanAnalysis::getCompoundGroupObjects(void) const
