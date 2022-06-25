@@ -103,6 +103,7 @@ SET(AplanGuiWebApp_SRCS
     # Python
     aplanwebapp/__init__.py
     aplanwebapp/api.py
+    aplanwebapp/browser.py
     aplanwebapp/server.py
 )
 
