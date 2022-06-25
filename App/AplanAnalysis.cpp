@@ -40,6 +40,7 @@
 #include <Mod/Aplan/App/AplanAnalysisPy.h>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
+#include <Mod/Aplan/App/AplanConstraintGroup.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanTools.hpp>
 
@@ -95,6 +96,19 @@ std::vector<Aplan::ConnectionDetector *> AplanAnalysis::getConnectionDetectorObj
         if (obj->isDerivedFrom(Aplan::ConnectionDetector::getClassTypeId()))
         {
             objects.push_back(static_cast<Aplan::ConnectionDetector *>(obj));
+        }
+    }
+    return objects;
+}
+
+std::vector<Aplan::AplanConstraintGroup *> AplanAnalysis::getConstraintGroupObjects(void) const
+{
+    std::vector<Aplan::AplanConstraintGroup *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::AplanConstraintGroup::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::AplanConstraintGroup *>(obj));
         }
     }
     return objects;

@@ -25,6 +25,12 @@
             </Documentation>
             <Parameter Name="ConnectionDetectorObjects" Type="List"/>
         </Attribute>
+        <Attribute Name="ConstraintGroupObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all AplanConstraintGroup objects contained in the corresponding AplanAnalysis</UserDocu>
+            </Documentation>
+            <Parameter Name="ConstraintsGroupObjects" Type="List"/>
+        </Attribute>
         <Attribute Name="PartFilterObjects" ReadOnly="true">
             <Documentation>
                 <UserDocu>List of all PartFilter objects contained in the corresponding AplanAnalysis</UserDocu>

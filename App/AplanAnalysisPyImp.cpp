@@ -30,6 +30,7 @@
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
+#include <Mod/Aplan/App/AplanConstraintGroup.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 // inclusion of the generated files (generated out of AplanAnalysisPy.xml)
@@ -71,6 +72,24 @@ Py::List AplanAnalysisPy::getConnectionDetectorObjects(void) const
     {
         std::vector<Aplan::ConnectionDetector *> objects = getAplanAnalysisPtr()->getConnectionDetectorObjects();
         for (Aplan::ConnectionDetector *o : objects)
+        {
+            pyObjects.append(Py::Object(o->getPyObject()));
+        }
+    }
+    catch (const std::exception &e)
+    {
+        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+    }
+    return pyObjects;
+}
+
+Py::List AplanAnalysisPy::getConstraintGroupObjects(void) const
+{
+    Py::List pyObjects;
+    try
+    {
+        std::vector<Aplan::AplanConstraintGroup *> objects = getAplanAnalysisPtr()->getConstraintGroupObjects();
+        for (Aplan::AplanConstraintGroup *o : objects)
         {
             pyObjects.append(Py::Object(o->getPyObject()));
         }
