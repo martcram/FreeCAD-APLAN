@@ -102,6 +102,7 @@ SET(AplanGuiWebApp_SRCS
     aplanwebapp/templates/error_500.html
     # Python
     aplanwebapp/__init__.py
+    aplanwebapp/api.py
     aplanwebapp/server.py
 )
 
