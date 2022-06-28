@@ -58,6 +58,8 @@ SET(AplanGui_SRCS_ViewProvider
     ViewProviderConnectionDetector.hpp
     ViewProviderConstraintGroup.hpp
     ViewProviderConstraintGroup.cpp
+    ViewProviderGeomConstraints.cpp
+    ViewProviderGeomConstraints.hpp
     ViewProviderPartFilter.cpp
     ViewProviderPartFilter.hpp
     ViewProviderTopoConstraints.cpp

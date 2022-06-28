@@ -51,6 +51,8 @@ SET(AplanBase_SRCS
     AplanConnectionDetector.hpp
     AplanConstraintGroup.cpp
     AplanConstraintGroup.hpp
+    AplanGeomConstraints.cpp
+    AplanGeomConstraints.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
     AplanTopoConstraints.cpp

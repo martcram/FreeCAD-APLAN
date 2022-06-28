@@ -31,11 +31,12 @@
 #include <Base/PyObjectBase.h>
 #include <CXX/Extensions.hxx>
 #include <Mod/Aplan/App/AplanAnalysis.hpp>
-#include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanCompound.hpp>
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
+#include <Mod/Aplan/App/AplanGeomConstraints.hpp>
+#include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanTopoConstraints.hpp>
 
 namespace Aplan
@@ -79,6 +80,9 @@ PyMOD_INIT_FUNC(Aplan)
     Aplan::AplanConstraintGroup::init();
     Aplan::AplanConstraintGroupPython::init();
     
+    Aplan::GeomConstraints::init();
+    Aplan::GeomConstraintsPython::init();
+
     Aplan::TopoConstraints::init();
     Aplan::TopoConstraintsPython::init();
 

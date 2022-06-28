@@ -33,11 +33,12 @@
 #include <Gui/Language/Translator.h>
 
 #include <Mod/Aplan/Gui/ViewProviderAnalysis.hpp>
-#include <Mod/Aplan/Gui/ViewProviderPartFilter.hpp>
 #include <Mod/Aplan/Gui/ViewProviderCompound.hpp>
 #include <Mod/Aplan/Gui/ViewProviderCompoundGroup.hpp>
 #include <Mod/Aplan/Gui/ViewProviderConnectionDetector.hpp>
 #include <Mod/Aplan/Gui/ViewProviderConstraintGroup.hpp>
+#include <Mod/Aplan/Gui/ViewProviderGeomConstraints.hpp>
+#include <Mod/Aplan/Gui/ViewProviderPartFilter.hpp>
 #include <Mod/Aplan/Gui/ViewProviderTopoConstraints.hpp>
 #include <Mod/Aplan/Gui/Workbench.hpp>
 
@@ -99,6 +100,9 @@ PyMOD_INIT_FUNC(AplanGui)
 
     AplanGui::ViewProviderPartFilter::init();
     AplanGui::ViewProviderPartFilterPython::init();
+
+    AplanGui::ViewProviderGeomConstraints::init();
+    AplanGui::ViewProviderGeomConstraintsPython::init();
 
     AplanGui::ViewProviderTopoConstraints::init();
     AplanGui::ViewProviderTopoConstraintsPython::init();
