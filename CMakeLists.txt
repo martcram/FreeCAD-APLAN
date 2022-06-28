@@ -43,6 +43,7 @@ SET(AplanSolvers_SRCS
     aplansolvers/aplan_connection_detectors/swell_occt.py
     # Obstruction detectors
     aplansolvers/aplan_obstruction_detectors/__init__.py
+    aplansolvers/aplan_obstruction_detectors/base_obstruction_detector.py
 )
 
 SET(AplanTools_SRCS
