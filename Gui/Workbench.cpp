@@ -102,6 +102,11 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
         << "APLAN_TopoConstraints"
         << "APLAN_ConnectionDetectorSwellOCCT";
 
+    Gui::ToolBarItem *obstructions = new Gui::ToolBarItem(root);
+    obstructions->setCommand("Obstructions");
+    *obstructions
+        << "APLAN_ObstructionDetectorOCCT";
+
     Gui::ToolBarItem* results = new Gui::ToolBarItem(root);
     results->setCommand("Results");
     *results

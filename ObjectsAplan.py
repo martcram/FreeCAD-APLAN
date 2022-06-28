@@ -73,6 +73,15 @@ def makePartFilter(doc, name="PartFilter"):
     return obj
 
 
+# ********* Connection detection objects **********************************************
+def makeConnectionDetectorSwellOCCT(doc, name="ConnectDetector"):
+    """makeConnectionDetectorSwellOCCT(document, [name]):
+    makes an APLAN SwellOCCT ConnectionDetector object"""
+    from aplansolvers.aplan_connection_detectors import swell_occt
+    obj = swell_occt.create(doc, name)
+    return obj
+
+
 def makeTopoConstraints(analysis, constraints: typing.Set[typing.Tuple[str, str]] = set(), name="TopoConstraints"):
     """makeTopoConstraints(analysis, constraints, [name]):
     makes an APLAN TopoConstraints object"""
@@ -82,10 +91,10 @@ def makeTopoConstraints(analysis, constraints: typing.Set[typing.Tuple[str, str]
     return obj
 
 
-# ********* Connection detection objects **********************************************
-def makeConnectionDetectorSwellOCCT(doc, name="ConnectDetector"):
-    """makeConnectionDetectorSwellOCCT(document, [name]):
-    makes an APLAN SwellOCCT ConnectionDetector object"""
-    from aplansolvers.aplan_connection_detectors import swell_occt
-    obj = swell_occt.create(doc, name)
+# ********* Obstruction detection objects **********************************************
+def makeObstructionDetectorOCCT(doc, name="ObstructDetector"):
+    """makeObstructionDetectorOCCT(document, [name]):
+    ..."""
+    from aplansolvers.aplan_obstruction_detectors import occt
+    obj = occt.create(doc, name)
     return obj

@@ -104,6 +104,31 @@ class _ConstraintsPurge(CommandManager):
         aplanutils.purgeConstraints(AplanGui.getActiveAnalysis())
 
 
+class _ObstructionDetectorOCCT(CommandManager):
+    "..."
+
+    def __init__(self) -> None:
+        super(_ObstructionDetectorOCCT, self).__init__()
+        self.pixmap: str = "APLAN_ObstructionDetector"
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ObstructionDetectorOCCT",
+            "OCCT obstruction detector"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_ObstructionDetectorOCCT",
+            "Creates a OCCT solver for detecting (dis)assembly obstructions\nbased on bounding box intersections and OpenCascade's tools"
+        )
+        self.do_activated = "add_obj_on_gui_set_edit"
+
+    def IsActive(self) -> bool:
+        analysis = AplanGui.getActiveAnalysis()
+        objectExists: bool = any([detector.Type == "OCCT"
+                                  for detector in analysis.ObstructionDetectorObjects])
+        return (analysis is not None
+                and self.active_analysis_in_active_doc()
+                and not objectExists)
+
+
 class _PartFilter(CommandManager):
     "..."
 
@@ -195,6 +220,7 @@ class _TopoConstraintsInspect(CommandManager):
 FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())
 FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
 FreeCADGui.addCommand("APLAN_ConstraintsPurge",            _ConstraintsPurge())
+FreeCADGui.addCommand("APLAN_ObstructionDetectorOCCT",     _ObstructionDetectorOCCT())
 FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())
 FreeCADGui.addCommand("APLAN_TopoConstraints",             _TopoConstraints())
