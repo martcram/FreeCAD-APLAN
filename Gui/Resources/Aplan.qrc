@@ -5,6 +5,7 @@
 
         <!-- task panels -->
         <file>ui/aplan_connection_detectors/SwellOCCT.ui</file>
+        <file>ui/aplan_obstruction_detectors/OCCT.ui</file>
         <file>ui/ExcludeParts.ui</file>
         <file>ui/GroupParts.ui</file>
         <file>ui/TopoConstraints.ui</file>

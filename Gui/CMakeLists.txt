@@ -106,6 +106,7 @@ INSTALL(FILES ${AplanGuiIcon_SVG} DESTINATION "${CMAKE_INSTALL_DATADIR}/Mod/Apla
 # see https://forum.freecadweb.org/viewtopic.php?f=10&t=25833
 SET(AplanGuiPythonUI_SRCS
     Resources/ui/aplan_connection_detectors/SwellOCCT.ui
+    Resources/ui/aplan_obstruction_detectors/OCCT.ui
     Resources/ui/ExcludeParts.ui
     Resources/ui/GroupParts.ui
     Resources/ui/TopoConstraints.ui
