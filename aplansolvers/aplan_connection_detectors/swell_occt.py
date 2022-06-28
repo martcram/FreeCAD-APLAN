@@ -63,7 +63,6 @@ def create(doc, name: str = "SwellOCCT"):
 class SwellOCCT(base.IConnectionDetector):
     def __init__(self, obj):
         super(SwellOCCT, self).__init__(obj)
-        obj.Proxy = self
         self.addProperties(obj)
 
     def addProperties(self, obj):
