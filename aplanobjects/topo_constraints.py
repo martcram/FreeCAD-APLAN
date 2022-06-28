@@ -33,6 +33,7 @@ __url__ = "https://www.freecadweb.org"
 
 from aplantools import aplanutils
 try:
+    from . import base_aplanpythonobject
     from aplanobjects import graphs
     from aplanviewprovider.view_topo_constraints import VPTopoConstraints
     import FreeCAD
@@ -50,11 +51,11 @@ def create(doc, analysis, constraints: typing.Set[typing.Tuple[str, str]], name=
     return obj
 
 
-class TopoConstraints:
+class TopoConstraints(base_aplanpythonobject.BaseAplanPythonObject):
     BaseType = "Aplan::TopoConstraintsPython"
 
     def __init__(self, obj, analysis, constraints: typing.Set[typing.Tuple[str, str]]) -> None:
-        obj.Proxy = self
+        super(TopoConstraints, self).__init__(obj)
         if hasattr(obj, "FileLocation"):
             obj.FileLocation = "{}/{}.json".format(analysis.WorkingDir, obj.Label)
 
@@ -64,9 +65,3 @@ class TopoConstraints:
             else:
                 conGraph.add_edges_from(constraints)
             conGraph.exportToFile(obj.FileLocation)
-
-    def __getstate__(self) -> None:
-        return None
-
-    def __setstate__(self, state) -> None:
-        return None

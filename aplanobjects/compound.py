@@ -32,6 +32,7 @@ __url__ = "https://www.freecadweb.org"
 
 from aplantools import aplanutils
 try:
+    from . import base_aplanpythonobject
     from aplantools import aplanutils
     from aplanviewprovider.view_compound import ViewProviderCompound
     import FreeCAD
@@ -50,14 +51,8 @@ def create(doc, analysis, components: typing.List, name="Compound"):
     return obj
 
 
-class Compound:
+class Compound(base_aplanpythonobject.BaseAplanPythonObject):
     BaseType = "Aplan::CompoundPython"
 
     def __init__(self, obj):
-        obj.Proxy = self
-    
-    def __getstate__(self):
-        return None
-
-    def __setstate__(self, state):
-        return None
+        super(Compound, self).__init__(obj)

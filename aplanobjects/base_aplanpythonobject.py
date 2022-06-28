@@ -2,7 +2,7 @@
 # *                                                                         *
 # *   Copyright (c) 2017 Markus Hovorka <m.hovorka@live.de>                 *
 # *   Copyright (c) 2020 Bernd Hahnebach <bernd@bimstatik.org>              *
-# *   Copyright (c) 2021 Martijn Cramer <martijn.cramer@outlook.com>        *
+# *   Copyright (c) 2022 Martijn Cramer <martijn.cramer@outlook.com>        *
 # *                                                                         *
 # *   This file is part of the FreeCAD CAx development system.              *
 # *                                                                         *
@@ -34,7 +34,6 @@ __url__ = "https://www.freecadweb.org"
 
 
 class BaseAplanPythonObject:
-    
     BaseType = "App::FeaturePython"
 
     def __init__(self, obj):

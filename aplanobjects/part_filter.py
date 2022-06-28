@@ -31,21 +31,20 @@ __url__ = "https://www.freecadweb.org"
 #  \brief FreeCAD APLAN part filter object
 
 from aplantools import aplanutils
-from aplanviewprovider.view_part_filter import ViewProviderPartFilter
+try:
+    from . import base_aplanpythonobject
+    from aplantools import aplanutils
+    from aplanviewprovider.view_part_filter import ViewProviderPartFilter
+except ImportError as ie:
+    aplanutils.missingPythonModule(str(ie.name or ""))
 
 
 def create(doc, name: str = "PartFilter"):
     return aplanutils.createObject(doc, name, PartFilter, ViewProviderPartFilter)
 
 
-class PartFilter:
+class PartFilter(base_aplanpythonobject.BaseAplanPythonObject):
     BaseType = "Aplan::PartFilterPython"
 
     def __init__(self, obj):
-        obj.Proxy = self
-
-    def __getstate__(self):
-        return None
-
-    def __setstate__(self, state):
-        return None
+        super(PartFilter, self).__init__(obj)
