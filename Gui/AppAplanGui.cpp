@@ -38,6 +38,7 @@
 #include <Mod/Aplan/Gui/ViewProviderConnectionDetector.hpp>
 #include <Mod/Aplan/Gui/ViewProviderConstraintGroup.hpp>
 #include <Mod/Aplan/Gui/ViewProviderGeomConstraints.hpp>
+#include <Mod/Aplan/Gui/ViewProviderObstructionDetector.hpp>
 #include <Mod/Aplan/Gui/ViewProviderPartFilter.hpp>
 #include <Mod/Aplan/Gui/ViewProviderTopoConstraints.hpp>
 #include <Mod/Aplan/Gui/Workbench.hpp>
@@ -98,11 +99,14 @@ PyMOD_INIT_FUNC(AplanGui)
     AplanGui::ViewProviderConstraintGroup::init();
     AplanGui::ViewProviderConstraintGroupPython::init();
 
-    AplanGui::ViewProviderPartFilter::init();
-    AplanGui::ViewProviderPartFilterPython::init();
-
     AplanGui::ViewProviderGeomConstraints::init();
     AplanGui::ViewProviderGeomConstraintsPython::init();
+
+    AplanGui::ViewProviderObstructionDetector::init();
+    AplanGui::ViewProviderObstructionDetectorPython::init();
+
+    AplanGui::ViewProviderPartFilter::init();
+    AplanGui::ViewProviderPartFilterPython::init();
 
     AplanGui::ViewProviderTopoConstraints::init();
     AplanGui::ViewProviderTopoConstraintsPython::init();

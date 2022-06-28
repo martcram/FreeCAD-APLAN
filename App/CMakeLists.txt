@@ -53,6 +53,8 @@ SET(AplanBase_SRCS
     AplanConstraintGroup.hpp
     AplanGeomConstraints.cpp
     AplanGeomConstraints.hpp
+    AplanObstructionDetector.cpp
+    AplanObstructionDetector.hpp
     AplanPartFilter.cpp
     AplanPartFilter.hpp
     AplanTopoConstraints.cpp

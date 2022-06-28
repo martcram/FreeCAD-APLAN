@@ -36,6 +36,7 @@
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
 #include <Mod/Aplan/App/AplanGeomConstraints.hpp>
+#include <Mod/Aplan/App/AplanObstructionDetector.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanTopoConstraints.hpp>
 
@@ -73,6 +74,9 @@ PyMOD_INIT_FUNC(Aplan)
 
     Aplan::ConnectionDetector::init();
     Aplan::ConnectionDetectorPython::init();
+
+    Aplan::ObstructionDetector::init();
+    Aplan::ObstructionDetectorPython::init();
 
     Aplan::PartFilter::init();
     Aplan::PartFilterPython::init();
