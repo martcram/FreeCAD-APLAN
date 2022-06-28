@@ -35,6 +35,7 @@
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
+#include <Mod/Aplan/App/AplanObstructionDetector.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 
 namespace Aplan
@@ -51,6 +52,7 @@ namespace Aplan
         std::vector<Aplan::AplanCompoundGroup *> getCompoundGroupObjects(void) const;
         std::vector<Aplan::ConnectionDetector *> getConnectionDetectorObjects(void) const;
         std::vector<Aplan::AplanConstraintGroup *> getConstraintGroupObjects(void) const;
+        std::vector<Aplan::ObstructionDetector *> getObstructionDetectorObjects(void) const;
         std::vector<Aplan::PartFilter *> getPartFilterObjects(void) const;
         std::string getUniqueObjectLabel(const std::string &, const std::vector<std::string> & = {}) const;
 

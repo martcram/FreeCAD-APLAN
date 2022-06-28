@@ -38,6 +38,12 @@
             </Documentation>
             <Parameter Name="ConstraintsGroupObjects" Type="List"/>
         </Attribute>
+        <Attribute Name="ObstructionDetectorObjects" ReadOnly="true">
+            <Documentation>
+                <UserDocu>List of all ObstructionDetector objects contained in the corresponding AplanAnalysis</UserDocu>
+            </Documentation>
+            <Parameter Name="ObstructionDetectorObjects" Type="List"/>
+        </Attribute>
         <Attribute Name="PartFilterObjects" ReadOnly="true">
             <Documentation>
                 <UserDocu>List of all PartFilter objects contained in the corresponding AplanAnalysis</UserDocu>

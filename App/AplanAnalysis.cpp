@@ -41,6 +41,7 @@
 #include <Mod/Aplan/App/AplanCompoundGroup.hpp>
 #include <Mod/Aplan/App/AplanConnectionDetector.hpp>
 #include <Mod/Aplan/App/AplanConstraintGroup.hpp>
+#include <Mod/Aplan/App/AplanObstructionDetector.hpp>
 #include <Mod/Aplan/App/AplanPartFilter.hpp>
 #include <Mod/Aplan/App/AplanTools.hpp>
 #include <Mod/Part/App/PartFeature.h>
@@ -150,6 +151,19 @@ std::vector<Aplan::AplanConstraintGroup *> AplanAnalysis::getConstraintGroupObje
         if (obj->isDerivedFrom(Aplan::AplanConstraintGroup::getClassTypeId()))
         {
             objects.push_back(static_cast<Aplan::AplanConstraintGroup *>(obj));
+        }
+    }
+    return objects;
+}
+
+std::vector<Aplan::ObstructionDetector *> AplanAnalysis::getObstructionDetectorObjects(void) const
+{
+    std::vector<Aplan::ObstructionDetector *> objects{};
+    for (const auto &obj : this->getAllChildren())
+    {
+        if (obj->isDerivedFrom(Aplan::ObstructionDetector::getClassTypeId()))
+        {
+            objects.push_back(static_cast<Aplan::ObstructionDetector *>(obj));
         }
     }
     return objects;
