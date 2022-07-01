@@ -188,7 +188,11 @@ class MessageType(enum.Enum):
     ERROR:   QtGui.QColor = QtGui.QColor(255, 0, 0)
 
 
-class CartesianMotionDirection(enum.IntEnum):
+class IMotionDirection:
+    pass
+
+
+class CartesianMotionDirection(IMotionDirection, enum.IntEnum):
     NEG_X = -1
     POS_X = 1
     NEG_Y = -2
