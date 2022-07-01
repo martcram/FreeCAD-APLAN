@@ -165,6 +165,7 @@ class ITaskPanel(metaclass=abc.ABCMeta):
 class BaseWorker(QtCore.QObject):
     finished: QtCore.Signal = QtCore.Signal(dict)
     progress: QtCore.Signal = QtCore.Signal(dict)
+    error: QtCore.Signal = QtCore.Signal(tuple)
 
     def __init__(self) -> None:
         super(BaseWorker, self).__init__()
