@@ -370,6 +370,7 @@ class _TaskPanel(base.ITaskPanel):
 
 class SwellOCCTSolver:
     def __init__(self, components: typing.List) -> None:
+        self._isRunning: bool = True
         self.setComponents(components)
 
     def setComponents(self, components: typing.List) -> None:
@@ -381,15 +382,23 @@ class SwellOCCTSolver:
             potentialConnections = [comb for comb in itertools.combinations(self._componentsDict.keys(), 2)]
         elif method == RefinementMethod.BoundBox:
             swellDistance: float = float(configParam["swellDistance"])
-            boundBoxDict: typing.Dict = {component.Label: FreeCAD.BoundBox((component.Shape.BoundBox.XMin-swellDistance/2),
-                                                                           (component.Shape.BoundBox.YMin-swellDistance/2),
-                                                                           (component.Shape.BoundBox.ZMin-swellDistance/2),
-                                                                           (component.Shape.BoundBox.XMax+swellDistance/2),
-                                                                           (component.Shape.BoundBox.YMax+swellDistance/2),
-                                                                           (component.Shape.BoundBox.ZMax+swellDistance/2))
-                                        for component in self._componentsDict.values()}
-            potentialConnections = [comb for comb in itertools.combinations(boundBoxDict.keys(), 2) 
-                                    if boundBoxDict[comb[0]].intersect(boundBoxDict[comb[1]])]
+            boundBoxDict: typing.Dict = {}
+            for component in self._componentsDict.values():
+                if not self._isRunning:
+                    return []
+                boundBoxDict[component.Label] = FreeCAD.BoundBox((component.Shape.BoundBox.XMin-swellDistance/2),
+                                                                 (component.Shape.BoundBox.YMin-swellDistance/2),
+                                                                 (component.Shape.BoundBox.ZMin-swellDistance/2),
+                                                                 (component.Shape.BoundBox.XMax+swellDistance/2),
+                                                                 (component.Shape.BoundBox.YMax+swellDistance/2),
+                                                                 (component.Shape.BoundBox.ZMax+swellDistance/2))
+            
+            for comb in itertools.combinations(boundBoxDict.keys(), 2):
+                if not self._isRunning:
+                    return []
+                if boundBoxDict[comb[0]].intersect(boundBoxDict[comb[1]]):
+                    potentialConnections.append(comb)
+
         return potentialConnections
     
     def solve(self, method: SolverMethod, configParam: typing.Dict, **kwargs) -> typing.Set[typing.Tuple]:
@@ -399,6 +408,8 @@ class SwellOCCTSolver:
 
         topologicalConstraints: typing.Set[typing.Tuple] = set()
         for potentialConnection in potentialConnections:
+            if not self._isRunning:
+                return set()
             componentLabel1: str = potentialConnection[0]
             componentLabel2: str = potentialConnection[1]
             component1 = self._componentsDict[potentialConnection[0]]
@@ -416,6 +427,8 @@ class SwellOCCTSolver:
                     partPointsMeshDict[smallestComponent.Label] = MeshPart.meshFromShape(Shape=smallestComponent.Shape, MaxLength=maxLength).Points
                 meshPoints = partPointsMeshDict[smallestComponent.Label]
                 for p in meshPoints:
+                    if not self._isRunning:
+                        return set()
                     if largestComponent.Shape.isInside(FreeCAD.Vector(p.x, p.y, p.z), float(configParam["tolerance"]), True):
                         topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
                         break
@@ -429,6 +442,8 @@ class SwellOCCTSolver:
                 samplePoints = partPointsSampleDict[smallestComponent.Label]
                 p_: typing.Tuple[float, float, float]
                 for p_ in samplePoints:
+                    if not self._isRunning:
+                        return set()
                     if largestComponent.Shape.isInside(FreeCAD.Vector(p_[0], p_[1], p_[2]), float(configParam["tolerance"]), True):
                         topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
                         break
@@ -441,12 +456,21 @@ class SwellOCCTSolver:
                     topologicalConstraints.add(tuple(sorted([componentLabel1, componentLabel2])))
         
         return topologicalConstraints
+    
+    def stop(self) -> None:
+        self._isRunning = False
 
 
 class Worker(base.BaseWorker):
     def __init__(self, inputParams: typing.Dict) -> None:
         super(Worker, self).__init__()
         self._inputParams: typing.Dict = inputParams
+        self._componentsDict: typing.Dict = self._inputParams["componentsDict"]
+        self._refinementMethod: RefinementMethod = self._inputParams["refinementMethod"]
+        self._configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
+        self._solverMethod: SolverMethod = self._inputParams["solverMethod"]
+        self._configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
+        self._solver: SwellOCCTSolver = SwellOCCTSolver(list(self._componentsDict.values()))
 
     def run(self) -> None:
         self.progress.emit({"msg": ">>> STARTED",
@@ -454,21 +478,14 @@ class Worker(base.BaseWorker):
         self._isRunning = True
         computationTime: float = 0.0
 
-        try:
-            componentsDict: typing.Dict = self._inputParams["componentsDict"]
-            refinementMethod: RefinementMethod = self._inputParams["refinementMethod"]
-            configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
-            solverMethod: SolverMethod = self._inputParams["solverMethod"]
-            configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
-            solver: SwellOCCTSolver = SwellOCCTSolver(list(componentsDict.values()))
-            
+        try:           
             self.progress.emit({"msg": "====== Refining ======",
                                 "type": base.MessageType.INFO})
-            self.progress.emit({"msg": "Performing the {} refinement method".format(refinementMethod.value[0]),
+            self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
                                 "type": base.MessageType.INFO})
             time0: float = time.perf_counter()
 
-            potentialConnections: typing.List = solver.refine(refinementMethod, configParamRefinement)
+            potentialConnections: typing.List = self._solver.refine(self._refinementMethod, self._configParamRefinement)
 
             time1: float = time.perf_counter()
             computationTime += time1-time0
@@ -483,11 +500,11 @@ class Worker(base.BaseWorker):
 
             self.progress.emit({"msg": "====== Solving =======",
                                 "type": base.MessageType.INFO})
-            self.progress.emit({"msg": "Performing the {} solver method".format(solverMethod.value[0]),
+            self.progress.emit({"msg": "Performing the {} solver method".format(self._solverMethod.value[0]),
                                 "type": base.MessageType.INFO})
             time2: float = time.perf_counter()
         
-            topologicalConstraints: typing.Set[typing.Tuple] = solver.solve(solverMethod, configParamSolver, potConnections=potentialConnections)
+            topologicalConstraints: typing.Set[typing.Tuple] = self._solver.solve(self._solverMethod, self._configParamSolver, potConnections=potentialConnections)
 
             time3: float = time.perf_counter()
             computationTime += time3-time2
@@ -511,6 +528,10 @@ class Worker(base.BaseWorker):
             self.progress.emit({"msg": ">>> ERROR\n{}\nERROR <<<".format(e),
                                 "type": base.MessageType.ERROR})
             self.__abort()
+
+    def stop(self) -> None:
+        self._isRunning = False
+        self._solver.stop()
 
     def __abort(self) -> None:
         self._isRunning = False
