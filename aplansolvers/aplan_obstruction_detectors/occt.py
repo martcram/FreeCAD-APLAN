@@ -344,6 +344,12 @@ class _TaskPanel(base.ITaskPanel):
         self.obj.Document.recompute()
         return True
 
+    def __handleError(self, error: typing.Tuple) -> None:
+        aplanutils.displayAplanError(*error)
+
+    def __processOutput(self, output: typing.Dict) -> None:
+        pass
+
     def __readCheckBoxState(self, state: int, objectName: str) -> None:
         motionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection[objectName.upper()]
         if state == QtCore.Qt.Checked:
@@ -366,8 +372,49 @@ class _TaskPanel(base.ITaskPanel):
         self._minStepSize = float(self.form.dsb_min_step_size.text())
         self._fixedStepSize = float(self.form.dsb_fixed_step_size.text())
 
+    def __reportProgress(self, progress: typing.Dict) -> None:
+        self.form.te_output.setTextColor(base.MessageType(progress["type"]).value)
+        self.form.te_output.append(progress["msg"])
+        self.form.te_output.setTextColor(base.MessageType.INFO.value)
+
     def __run(self) -> None:
-        pass
+        if self._solverThread is None or not self._solverThread.isRunning():
+            # Init
+            configParamRefinement: typing.Dict = {param: self.__dict__["_{}".format(param)] 
+                                                  for param in self._configParamRefinement.get(self._refinementMethod, set())}
+            configParamSolver: typing.Dict = {param: self.__dict__["_{}".format(param)] 
+                                              for param in self._configParamSolver.get(self._solverMethod, set())}
+            inputParams: typing.Dict = {"componentsDict": self._componentsDict,
+                                        "motionDirections": self._motionDirections,
+                                        "refinementMethod": self._refinementMethod,
+                                        "configParamRefinement": configParamRefinement,
+                                        "solverMethod": self._solverMethod,
+                                        "configParamSolver": configParamSolver}
+
+            self._solverThread = QtCore.QThread()
+            self._worker: Worker = Worker(self.obj.Type, inputParams)
+            self._worker.moveToThread(self._solverThread)
+
+            # Connect signals and slots
+            self._solverThread.started.connect(self._worker.run)
+            self._solverThread.finished.connect(self.__threadFinished)
+            self._solverThread.finished.connect(self._solverThread.deleteLater)
+            self._worker.progress.connect(self.__reportProgress)
+            self._worker.finished.connect(self.__processOutput)
+            self._worker.finished.connect(self._solverThread.quit)
+            self._worker.finished.connect(self._worker.deleteLater)
+            self._worker.error.connect(self.__handleError)
+
+            # Start solver thread
+            self._solverThread.start()
+            self.__threadStarted()
+
+        elif self._solverThread is not None and self._solverThread.isRunning() and self._worker.isRunning:
+            self.form.btn_run.setText("Terminating ...")
+            self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_TERMINATING))
+
+            self._worker.stop()
+            self._solverThread.quit()
 
     def __switchSolverMethod(self, solverMethod: str) -> None:
         for method in SolverMethod:
@@ -404,6 +451,15 @@ class _TaskPanel(base.ITaskPanel):
             self.form.l_label_variable_step_size.setEnabled(True)
             self.form.cb_variable_step_size.setEnabled(True)
 
+    def __threadFinished(self) -> None:
+        self.form.btn_run.setText("Run")
+        self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_RUN))
+        self._solverThread = None
+
+    def __threadStarted(self) -> None:
+        self.form.btn_run.setText("Abort")
+        self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_ABORT))
+
     def __toggleVariableStepSize(self, state: QtCore.Qt.CheckState) -> None:
         self._variableStepSizeEnabled = (state == QtCore.Qt.Checked)
         if self._variableStepSizeEnabled:
@@ -434,3 +490,38 @@ class _TaskPanel(base.ITaskPanel):
         self.obj.VolumeTolerance = self._volumeTolerance
         self.obj.SampleCoefficient = self._sampleCoefficient
         self.obj.MotionDirections = [motionDir.name for motionDir in self._motionDirections]
+
+
+class Worker(base.BaseWorker):
+    def __init__(self, detectorType: str, inputParams: typing.Dict) -> None:
+        super(Worker, self).__init__(detectorType)
+        self._isRunning: bool = False
+        self._inputParams: typing.Dict = inputParams
+
+    def run(self) -> None:
+        self.progress.emit({"msg": ">>> STARTED",
+                            "type": base.MessageType.INFO})
+        self._isRunning = True
+        computationTime: float = 0.0
+
+        try:
+            self.progress.emit({"msg": ">>> FINISHED",
+                                "type": base.MessageType.INFO})
+
+            self._isRunning = False
+            self.finished.emit({"time": computationTime,
+                                "constraints": []})
+        
+        except Exception as e:
+            self.progress.emit({"msg": ">>> ERROR\n{}\nERROR <<<".format(e),
+                                "type": base.MessageType.ERROR})
+            self.__abort()
+  
+    def stop(self) -> None:
+        self._isRunning = False
+
+    def __abort(self) -> None:
+        self._isRunning = False
+        self.progress.emit({"msg": ">>> ABORTED",
+                            "type": base.MessageType.WARNING})
+        self.finished.emit({})
