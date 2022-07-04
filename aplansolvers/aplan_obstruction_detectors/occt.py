@@ -35,6 +35,7 @@ try:
         import FreeCADGui
     import itertools
     from PySide2 import QtCore, QtWidgets
+    import time
     import typing
 except ImportError as ie:
     aplanutils.missingPythonModule(str(ie.name or ""))
@@ -492,11 +493,122 @@ class _TaskPanel(base.ITaskPanel):
         self.obj.MotionDirections = [motionDir.name for motionDir in self._motionDirections]
 
 
+class OCCTSolver:
+    def __init__(self, components: typing.List, motionDirections: typing.Set[base.CartesianMotionDirection]) -> None:
+        self._isRunning: bool = True
+        self.setComponents(components)
+        self._nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
+                                                                                   for motionDir_ in motionDirections}
+
+    def setComponents(self, components: typing.List) -> None:
+        self._componentsDict = {component.Label: component for component in components}
+
+    def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.Dict:
+        overallBoundbox = FreeCAD.BoundBox()
+        for component in self._componentsDict.values():
+            overallBoundbox.add(component.Shape.BoundBox)
+        if not self._isRunning:
+                return {}
+        componentsIntervalPairs: typing.Dict = {}
+        motionDirection_: base.CartesianMotionDirection
+        for motionDirection_ in self._nonRedundantMotionDirs:
+            if not self._isRunning:
+                return {}
+            componentsIntervalPairs[motionDirection_.name] = {}
+            for target in self._componentsDict.values():
+                if not self._isRunning:
+                    return {}
+                intersectionComponents: typing.List[typing.List] = [comp for comp in self._componentsDict.values() if comp != target]
+                intervals: typing.List[typing.List[float]] = []
+                if method == RefinementMethod.None_:
+                    if motionDirection_ == base.CartesianMotionDirection.POS_X:
+                        intervals.append([target.Shape.BoundBox.XMin, overallBoundbox.XMax])
+                    elif motionDirection_ == base.CartesianMotionDirection.POS_Y:
+                        intervals.append([target.Shape.BoundBox.YMin, overallBoundbox.YMax])
+                    elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
+                        intervals.append([target.Shape.BoundBox.ZMin, overallBoundbox.ZMax])
+                elif method == RefinementMethod.BoundBox:
+                    intersectionComponents, intervals = self.__findPotentialObstacles(target, {component for component in self._componentsDict.values() 
+                                                                                               if component.Label != target.Label}, 
+                                                                                      motionDirection_, overallBoundbox)
+                componentsIntervalPairs[motionDirection_.name][target.Label] = list(zip(intersectionComponents, intervals))
+        return componentsIntervalPairs
+
+    def stop(self) -> None:
+        self._isRunning = False
+
+    def __findPotentialObstacles(self, target, components: typing.Set, motionDirection: base.CartesianMotionDirection, overallBoundBox) -> typing.Tuple[typing.List[typing.List], typing.List[typing.List[float]]]:
+        targetBoundBox = target.Shape.BoundBox
+        targetBoundary: float = 0.0
+        targetSize: float = 0.0
+
+        if motionDirection == base.CartesianMotionDirection.POS_X:
+            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
+                                                 overallBoundBox.XMax, targetBoundBox.YMax, targetBoundBox.ZMax)
+            targetBoundary = targetBoundBox.XMin
+            targetSize = targetBoundBox.XLength
+        elif motionDirection == base.CartesianMotionDirection.POS_Y:
+            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
+                                                 targetBoundBox.XMax, overallBoundBox.YMax, targetBoundBox.ZMax)
+            targetBoundary = targetBoundBox.YMin
+            targetSize = targetBoundBox.YLength
+        elif motionDirection == base.CartesianMotionDirection.POS_Z:
+            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
+                                                 targetBoundBox.XMax, targetBoundBox.YMax, overallBoundBox.ZMax)
+            targetBoundary = targetBoundBox.ZMin
+            targetSize = targetBoundBox.ZLength          
+
+        potentialObstacles: typing.List = []
+        intersections: typing.List[typing.List[float]] = []
+        for comp in components:
+            if not self._isRunning:
+                return [], []
+            if elongatedBoundBox.intersect(comp.Shape.BoundBox):
+                intersection = elongatedBoundBox.intersected(comp.Shape.BoundBox)
+                if intersection.XLength > 0.01 and intersection.YLength > 0.01 and intersection.ZLength > 0.01:
+                    potentialObstacles.append(comp)
+                    if motionDirection == base.CartesianMotionDirection.POS_X:
+                        intersections.append([intersection.XMin, intersection.XMax])
+                    elif motionDirection == base.CartesianMotionDirection.POS_Y:
+                        intersections.append([intersection.YMin, intersection.YMax])
+                    elif motionDirection == base.CartesianMotionDirection.POS_Z:
+                        intersections.append([intersection.ZMin, intersection.ZMax])
+
+        intersectionComponents: typing.List[typing.List] = []
+        intervals: typing.List[typing.List[float]] = []
+        if potentialObstacles and intersections:
+            if not self._isRunning:
+                return [], []
+            sortedIntersections: typing.Tuple[typing.List[float]]
+            sortedObstacles: typing.Tuple[typing.List]
+            sortedIntersections, sortedObstacles = zip(*sorted(zip(intersections, potentialObstacles)))
+            if not self._isRunning:
+                return [], []
+            shiftedIntersections: typing.List[typing.List[float]] = [[max(targetBoundary, (intersection[0]-targetSize)), 
+                                                                      intersection[1]] for intersection in sortedIntersections]
+            intervalBoundaries: typing.List[float] = sorted(set(itertools.chain.from_iterable(shiftedIntersections)))
+            intervals = [[first, second] for first, second in zip(intervalBoundaries, intervalBoundaries[1:])]
+            if not self._isRunning:
+                return [], []
+            intersectionComponents = [[sortedObstacles[index] for index, intersection in enumerate(shiftedIntersections) 
+                                       if interval[0] < intersection[1] and intersection[0] < interval[1]] 
+                                       for interval in intervals]
+            intersectionComponents, intervals = zip(*[(obstacles, interval) for obstacles, interval in zip(intersectionComponents, intervals) 
+                                                      if obstacles])
+
+        return list(intersectionComponents), list(intervals)
+
+
 class Worker(base.BaseWorker):
     def __init__(self, detectorType: str, inputParams: typing.Dict) -> None:
         super(Worker, self).__init__(detectorType)
-        self._isRunning: bool = False
         self._inputParams: typing.Dict = inputParams
+        self._isRunning: bool = False
+        self._componentsDict: typing.Dict = self._inputParams["componentsDict"]
+        self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
+        self._refinementMethod: RefinementMethod = self._inputParams["refinementMethod"]
+        self._configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
+        self._solver: OCCTSolver = OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
     def run(self) -> None:
         self.progress.emit({"msg": ">>> STARTED",
@@ -505,6 +617,39 @@ class Worker(base.BaseWorker):
         computationTime: float = 0.0
 
         try:
+            self.progress.emit({"msg": "====== Refining ======",
+                                "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
+                                "type": base.MessageType.INFO})
+            time0: float = time.perf_counter()
+
+            componentsIntervalPairs: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
+
+            time1: float = time.perf_counter()
+            computationTime += time1-time0
+
+            noPotentialObstructions: int = 0
+            motionDirLabel: str
+            targetDict: typing.Dict
+            for motionDirLabel, targetDict in componentsIntervalPairs.items():
+                self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
+                                    "type": base.MessageType.INFO})
+                targetLabel: str
+                compIntervalPairs: typing.List
+                for targetLabel, compIntervalPairs in targetDict.items():
+                    noIntersectionComponents: int = len(set(itertools.chain.from_iterable([pair[0] for pair in compIntervalPairs])))
+                    noPotentialObstructions += noIntersectionComponents
+                    self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
+                                        "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
+                                        "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
+                                "type": base.MessageType.INFO})
+
+            if not self._isRunning:
+                self.__abort()
+                return
+
             self.progress.emit({"msg": ">>> FINISHED",
                                 "type": base.MessageType.INFO})
 
@@ -519,6 +664,7 @@ class Worker(base.BaseWorker):
   
     def stop(self) -> None:
         self._isRunning = False
+        self._solver.stop()
 
     def __abort(self) -> None:
         self._isRunning = False
