@@ -29,6 +29,7 @@ __url__ = "https://www.freecadweb.org"
 from aplantools import aplanutils
 try:
     import abc
+    from aplantools import aplanutils
     import enum
     import FreeCAD
     import FreeCADGui
@@ -167,8 +168,9 @@ class BaseWorker(QtCore.QObject):
     progress: QtCore.Signal = QtCore.Signal(dict)
     error: QtCore.Signal = QtCore.Signal(tuple)
 
-    def __init__(self) -> None:
+    def __init__(self, detectorType: str) -> None:
         super(BaseWorker, self).__init__()
+        self._detectorType: str = detectorType
         self._isRunning: bool = True
 
     def run(self) -> None:
