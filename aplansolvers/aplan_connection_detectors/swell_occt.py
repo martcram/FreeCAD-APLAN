@@ -534,7 +534,7 @@ class Worker(base.BaseWorker):
         self._solver.stop()
 
     def __abort(self) -> None:
-        self._isRunning = False
+        self.stop()
         self.progress.emit({"msg": ">>> ABORTED",
                             "type": base.MessageType.WARNING})
         self.finished.emit({})
