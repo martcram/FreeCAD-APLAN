@@ -509,16 +509,16 @@ class OCCTSolver:
             overallBoundbox.add(component.Shape.BoundBox)
         if not self._isRunning:
                 return {}
-        componentsIntervalPairs: typing.Dict = {}
+        componentsIntervalDict: typing.Dict = {}
         motionDirection_: base.CartesianMotionDirection
         for motionDirection_ in self._nonRedundantMotionDirs:
             if not self._isRunning:
                 return {}
-            componentsIntervalPairs[motionDirection_.name] = {}
+            componentsIntervalDict[motionDirection_.name] = {}
             for target in self._componentsDict.values():
                 if not self._isRunning:
                     return {}
-                intersectionComponents: typing.List[typing.List] = [comp for comp in self._componentsDict.values() if comp != target]
+                intersectionComponents: typing.List[typing.List] = []
                 intervals: typing.List[typing.List[float]] = []
                 if method == RefinementMethod.None_:
                     if motionDirection_ == base.CartesianMotionDirection.POS_X:
@@ -527,12 +527,13 @@ class OCCTSolver:
                         intervals.append([target.Shape.BoundBox.YMin, overallBoundbox.YMax])
                     elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
                         intervals.append([target.Shape.BoundBox.ZMin, overallBoundbox.ZMax])
+                    intersectionComponents = [[comp for comp in self._componentsDict.values() if comp != target]]
                 elif method == RefinementMethod.BoundBox:
                     intersectionComponents, intervals = self.__findPotentialObstacles(target, {component for component in self._componentsDict.values() 
                                                                                                if component.Label != target.Label}, 
                                                                                       motionDirection_, overallBoundbox)
-                componentsIntervalPairs[motionDirection_.name][target.Label] = list(zip(intersectionComponents, intervals))
-        return componentsIntervalPairs
+                componentsIntervalDict[motionDirection_.name][target.Label] = [intersectionComponents, intervals]
+        return componentsIntervalDict
 
     def stop(self) -> None:
         self._isRunning = False
@@ -623,7 +624,7 @@ class Worker(base.BaseWorker):
                                 "type": base.MessageType.INFO})
             time0: float = time.perf_counter()
 
-            componentsIntervalPairs: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
+            componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
 
             time1: float = time.perf_counter()
             computationTime += time1-time0
@@ -631,13 +632,13 @@ class Worker(base.BaseWorker):
             noPotentialObstructions: int = 0
             motionDirLabel: str
             targetDict: typing.Dict
-            for motionDirLabel, targetDict in componentsIntervalPairs.items():
+            for motionDirLabel, targetDict in componentsIntervalDict.items():
                 self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
                                     "type": base.MessageType.INFO})
                 targetLabel: str
                 compIntervalPairs: typing.List
                 for targetLabel, compIntervalPairs in targetDict.items():
-                    noIntersectionComponents: int = len(set(itertools.chain.from_iterable([pair[0] for pair in compIntervalPairs])))
+                    noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
                     noPotentialObstructions += noIntersectionComponents
                     self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
                                         "type": base.MessageType.INFO})
