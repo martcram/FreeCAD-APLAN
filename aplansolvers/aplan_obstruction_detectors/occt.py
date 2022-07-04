@@ -28,13 +28,16 @@ __url__ = "https://www.freecadweb.org"
 
 from aplantools import aplanutils
 try:
+    import Aplan
     import aplansolvers.aplan_obstruction_detectors.base_obstruction_detector as base
     import enum
     import FreeCAD
     if FreeCAD.GuiUp:
         import FreeCADGui
     import itertools
+    import MeshPart
     from PySide2 import QtCore, QtWidgets
+    import random
     import time
     import typing
 except ImportError as ie:
@@ -349,7 +352,8 @@ class _TaskPanel(base.ITaskPanel):
         aplanutils.displayAplanError(*error)
 
     def __processOutput(self, output: typing.Dict) -> None:
-        pass
+        self._computationTime = round(output.get("time", 0.0), 3)
+        self.form.l_time.setText("{} s".format(self._computationTime))
 
     def __readCheckBoxState(self, state: int, objectName: str) -> None:
         motionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection[objectName.upper()]
@@ -385,13 +389,17 @@ class _TaskPanel(base.ITaskPanel):
                                                   for param in self._configParamRefinement.get(self._refinementMethod, set())}
             configParamSolver: typing.Dict = {param: self.__dict__["_{}".format(param)] 
                                               for param in self._configParamSolver.get(self._solverMethod, set())}
+            configParamSolverGeneral: typing.Dict = {"variableStepSizeEnabled": self._variableStepSizeEnabled,
+                                                     "stepSizeCoefficient": self._stepSizeCoefficient,
+                                                     "minStepSize": self._minStepSize,
+                                                     "fixedStepSize": self._fixedStepSize}
             inputParams: typing.Dict = {"componentsDict": self._componentsDict,
-                                        "motionDirections": self._motionDirections,
                                         "refinementMethod": self._refinementMethod,
                                         "configParamRefinement": configParamRefinement,
                                         "solverMethod": self._solverMethod,
-                                        "configParamSolver": configParamSolver}
-
+                                        "configParamSolver": configParamSolver,
+                                        "configParamSolverGeneral": configParamSolverGeneral,
+                                        "motionDirections": self._motionDirections}
             self._solverThread = QtCore.QThread()
             self._worker: Worker = Worker(self.obj.Type, inputParams)
             self._worker.moveToThread(self._solverThread)
@@ -499,6 +507,8 @@ class OCCTSolver:
         self.setComponents(components)
         self._nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
                                                                                    for motionDir_ in motionDirections}
+        self._partPointsMeshDict: typing.Dict = {}
+        self._partPointsSampleDict: typing.Dict = {}
 
     def setComponents(self, components: typing.List) -> None:
         self._componentsDict = {component.Label: component for component in components}
@@ -535,8 +545,156 @@ class OCCTSolver:
                 componentsIntervalDict[motionDirection_.name][target.Label] = [intersectionComponents, intervals]
         return componentsIntervalDict
 
+    def solve(self, method: SolverMethod, configParam: typing.Dict, configParamGeneral: typing.Dict, **kwargs) -> typing.Dict[str, typing.Set[typing.Tuple]]:
+        componentsIntervalDict: typing.Dict = kwargs.get("componentsIntervalDict", self.refine(RefinementMethod.None_, {}))
+
+        geomConstraints: typing.Dict[str, typing.Set[typing.Tuple]] = {motionDir.name: set() for motionDir in self._nonRedundantMotionDirs}
+        motionDirection_: base.CartesianMotionDirection
+        for motionDirection_ in self._nonRedundantMotionDirs:
+            if not self._isRunning:
+                return {}
+            for target in self._componentsDict.values():
+                if not self._isRunning:
+                    return {}
+                
+                targetStartPosition = target.Placement
+
+                difference: float = 0.0
+                if motionDirection_ == base.CartesianMotionDirection.POS_X:
+                    difference = target.Placement.Base[0]-target.Shape.BoundBox.XMin
+                elif motionDirection_ == base.CartesianMotionDirection.POS_Y:
+                    difference = target.Placement.Base[1]-target.Shape.BoundBox.YMin
+                elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
+                    difference = target.Placement.Base[2]-target.Shape.BoundBox.ZMin
+                
+                collidingObjects: typing.Set = set()
+                index: int
+                interval: typing.List[float]
+                for index, interval in enumerate(componentsIntervalDict[motionDirection_.name][target.Label][1]):
+                    if not self._isRunning:
+                        return {}
+
+                    stepSize: float = float(configParamGeneral["fixedStepSize"])
+                    if bool(configParamGeneral["variableStepSizeEnabled"]):
+                        stepSize = max(((interval[1]-interval[0])*float(configParamGeneral["stepSizeCoefficient"])), float(configParamGeneral["minStepSize"]))
+
+                    if motionDirection_ == base.CartesianMotionDirection.POS_X:
+                        baseVector_ = FreeCAD.Vector(interval[0]+difference, targetStartPosition.Base[1], targetStartPosition.Base[2])
+                    elif motionDirection_ == base.CartesianMotionDirection.POS_Y:
+                        baseVector_ = FreeCAD.Vector(targetStartPosition.Base[0], interval[0]+difference, targetStartPosition.Base[2])
+                    elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
+                        baseVector_ = FreeCAD.Vector(targetStartPosition.Base[0], targetStartPosition.Base[1], interval[0]+difference)
+                    target.Placement = FreeCAD.Placement(baseVector_, targetStartPosition.Rotation)
+
+                    potentialObstacles: typing.List = componentsIntervalDict[motionDirection_.name][target.Label][0][index]
+                    targetPosition = interval[0]
+                    while targetPosition < interval[1]:
+                        if not self._isRunning:
+                            return {}
+
+                        if sum([True for obj in potentialObstacles if obj in collidingObjects]) == len(potentialObstacles):
+                            break
+
+                        if motionDirection_ == base.CartesianMotionDirection.POS_X:
+                            vector_ = FreeCAD.Vector(stepSize, 0.0, 0.0)
+                        elif motionDirection_ == base.CartesianMotionDirection.POS_Y:
+                            vector_ = FreeCAD.Vector(0.0, stepSize, 0.0)
+                        elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
+                            vector_ = FreeCAD.Vector(0.0, 0.0, stepSize)
+                        target.Placement.move(vector_)
+                        
+                        obstacles: typing.Set = {obst for obst in potentialObstacles if obst not in collidingObjects}
+                        collidingObjects = self.__detectCollisions(target, obstacles, collidingObjects, method, configParam)
+
+                        if not self._isRunning:
+                            return {}
+
+                        if motionDirection_ == base.CartesianMotionDirection.POS_X:
+                            targetPosition = target.Shape.BoundBox.XMin
+                        elif motionDirection_ == base.CartesianMotionDirection.POS_Y:
+                            targetPosition = target.Shape.BoundBox.YMin
+                        elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
+                            targetPosition = target.Shape.BoundBox.ZMin
+
+                baseVector = targetStartPosition.Base
+                target.Placement = FreeCAD.Placement(baseVector, targetStartPosition.Rotation)
+
+                geomConstraints[motionDirection_.name] = geomConstraints[motionDirection_.name].union({(target.Label, obj.Label) for obj in collidingObjects})
+        return geomConstraints
+
     def stop(self) -> None:
         self._isRunning = False
+
+    def __detectCollisions(self, target, potentialObstacles: typing.Set, collidingObjects: typing.Set, solverMethod: SolverMethod, configParams: typing.Dict) -> typing.Set:
+        # av = target.Shape.BoundBox
+        for obl in potentialObstacles:
+            if not self._isRunning:
+                return set()
+            # ov = obl.Shape.BoundBox
+            # if av.intersect(ov):
+            #     intersection = av.intersected(ov)
+            #     if intersection.XLength > 0.01 or intersection.YLength > 0.01 or intersection.ZLength > 0.01:
+
+                    # if len(target.Shape.Vertexes) > len(obl.Shape.Vertexes):
+                    #     shape_big = target
+                    #     shape_small = obl
+                    # else:
+                    #     shape_small = target
+                    #     shape_big = obl
+                    # inside_pt_found = False
+                    # for vertex in shape_small.Shape.Vertexes:
+                    #     if intersection.isInside(vertex.Point):
+                    #         if shape_big.Shape.isInside(vertex.Point, 10**-6, False):
+                    #             inside_pt_found = True
+                    #             collidingObjects.add(obl)
+                    #             break
+
+                    # if not inside_pt_found:
+                    
+            overlappedSubShapes0, overlappedSubShapes1 = target.Shape.proximity(obl.Shape, float(configParams["overlapTolerance"]))
+            if len(overlappedSubShapes0) > 0 or len(overlappedSubShapes1) > 0:
+                if solverMethod == SolverMethod.DistToShape:
+                    dist, pointPairs, _ = target.Shape.distToShape(obl.Shape)
+                    if dist < float(configParams["minDistance"]):
+                        for pointPair in pointPairs:
+                            if not self._isRunning:
+                                return set()
+                            if target.Shape.isInside(pointPair[1], float(configParams["classificationTolerance"]), False) or obl.Shape.isInside(pointPair[0], float(configParams["classificationTolerance"]), False):
+                                collidingObjects.add(obl)
+                                break
+                elif solverMethod == SolverMethod.MeshInside:
+                    boundBox = obl.Shape.BoundBox
+                    maxLength: float = min(boundBox.XLength, boundBox.YLength, boundBox.ZLength) * float(configParams["sampleCoefficient"])
+                    if obl.Label not in self._partPointsMeshDict.keys():
+                        self._partPointsMeshDict[obl.Label] = MeshPart.meshFromShape(Shape=obl.Shape, MaxLength=maxLength).Points
+                    meshPoints: typing.List = self._partPointsMeshDict[obl.Label]
+                    for p in random.sample(meshPoints, len(meshPoints)):
+                        if not self._isRunning:
+                            return set()
+                        if target.Shape.isInside(FreeCAD.Vector(p.x, p.y, p.z), float(configParams["classificationTolerance"]), False):
+                            collidingObjects.add(obl)
+                            break
+                elif solverMethod == SolverMethod.GeoDataInside:
+                    boundBox = obl.Shape.BoundBox
+                    distance: float = min(boundBox.XLength, boundBox.YLength, boundBox.ZLength) * float(configParams["sampleCoefficient"])
+                    if obl.Label not in self._partPointsSampleDict.keys():
+                        self._partPointsSampleDict[obl.Label] = Aplan.pointSampleShape(obl.Label, distance)
+                    samplePoints: typing.List = self._partPointsSampleDict[obl.Label]
+                    point: typing.Tuple[float, float, float]
+                    for point in random.sample(samplePoints, len(samplePoints)):
+                        if not self._isRunning:
+                            return set()
+                        if target.Shape.isInside(FreeCAD.Vector(*point), float(configParams["classificationTolerance"]), False):
+                            collidingObjects.add(obl)
+                            break
+                elif solverMethod == SolverMethod.Common:
+                    if target.Shape.common(obl.Shape).Volume > float(configParams["volumeTolerance"]):
+                        collidingObjects.add(obl)
+                elif solverMethod == SolverMethod.Fuse:
+                    if target.Shape.fuse(obl.Shape).Volume < (target.Shape.Volume + obl.Shape.Volume - float(configParams["volumeTolerance"])):
+                        collidingObjects.add(obl)
+
+        return collidingObjects
 
     def __findPotentialObstacles(self, target, components: typing.Set, motionDirection: base.CartesianMotionDirection, overallBoundBox) -> typing.Tuple[typing.List[typing.List], typing.List[typing.List[float]]]:
         targetBoundBox = target.Shape.BoundBox
@@ -606,9 +764,12 @@ class Worker(base.BaseWorker):
         self._inputParams: typing.Dict = inputParams
         self._isRunning: bool = False
         self._componentsDict: typing.Dict = self._inputParams["componentsDict"]
-        self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
         self._refinementMethod: RefinementMethod = self._inputParams["refinementMethod"]
         self._configParamRefinement: typing.Dict = self._inputParams["configParamRefinement"]
+        self._solverMethod: SolverMethod = self._inputParams["solverMethod"]
+        self._configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
+        self._configParamSolverGeneral: typing.Dict = self._inputParams["configParamSolverGeneral"]
+        self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
         self._solver: OCCTSolver = OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
     def run(self) -> None:
@@ -651,12 +812,36 @@ class Worker(base.BaseWorker):
                 self.__abort()
                 return
 
+            self.progress.emit({"msg": "====== Solving =======",
+                                "type": base.MessageType.INFO})
+            self.progress.emit({"msg": "Performing the {} solver method".format(self._solverMethod.value[0]),
+                                "type": base.MessageType.INFO})
+            time2: float = time.perf_counter()
+
+            geometricalConstraints: typing.Dict[str, typing.Set[typing.Tuple]] = self._solver.solve(self._solverMethod, self._configParamSolver, self._configParamSolverGeneral,
+                                                                                                    componentsIntervalDict=componentsIntervalDict)
+
+            time3: float = time.perf_counter()
+            computationTime += time3-time2
+
+            motionDir_: str
+            geomConstraints_: typing.Set[typing.Tuple]
+            for motionDir_, geomConstraints_ in geometricalConstraints.items():    
+                self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.upper(), len(geomConstraints_)),
+                                    "type": base.MessageType.FOCUS})
+            self.progress.emit({"msg": "> Done: {:.3f}s".format(time3-time2),
+                                "type": base.MessageType.INFO})
+
+            if not self._isRunning:
+                self.__abort()
+                return
+
             self.progress.emit({"msg": ">>> FINISHED",
                                 "type": base.MessageType.INFO})
 
             self._isRunning = False
             self.finished.emit({"time": computationTime,
-                                "constraints": []})
+                                "constraints": geometricalConstraints})
         
         except Exception as e:
             self.progress.emit({"msg": ">>> ERROR\n{}\nERROR <<<".format(e),
@@ -668,7 +853,7 @@ class Worker(base.BaseWorker):
         self._solver.stop()
 
     def __abort(self) -> None:
-        self._isRunning = False
+        self.stop()
         self.progress.emit({"msg": ">>> ABORTED",
                             "type": base.MessageType.WARNING})
         self.finished.emit({})
