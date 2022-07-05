@@ -1,6 +1,9 @@
+[![PRs][prs-shield]][prs-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![License][license-shield]][license-url]
+
 # <img align="left" src="https://github.com/martcram/FreeCAD-APLAN/blob/main/Gui/Resources/icons/APLAN_Workbench.svg" alt="APLAN workbench icon" width="53"> APLAN: Assembly PLANning workbench for FreeCAD
-[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v2.1-blue.svg)](https://www.gnu.org/licenses/lgpl-2.1)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-round)](https://github.com/martcram/FreeCAD-APLAN/pulls)
 
 > :warning: **Work in progress**
 
@@ -49,7 +52,19 @@ See the list of [contributors](https://github.com/martcram/FreeCAD-APLAN/graphs/
 This project is licensed under the LGPL-2.1 license - see the [LICENSE](https://github.com/martcram/FreeCAD-APLAN/blob/main/LICENSE) file for more details.
 
 ## Acknowledgments
+* [FreeCAD](https://www.freecadweb.org/) and its [community](https://forum.freecadweb.org/)
 * [KU Leuven](https://iiw.kuleuven.be/english/diepenbeek) @ Diepenbeek Campus
 * Automation, Computer vision and Robotics ([ACRO](https://iiw.kuleuven.be/onderzoek/acro)) research unit
 * Research Foundation - Flanders ([FWO](https://www.fwo.be/en/))
 * Workbench icon: <a href="https://www.flaticon.com/authors/monkik" title="monkik">monkik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[prs-shield]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge
+[prs-url]: https://github.com/martcram/FreeCAD-APLAN/pulls
+[stars-shield]: https://img.shields.io/github/stars/martcram/FreeCAD-APLAN.svg?style=for-the-badge
+[stars-url]: https://github.com/martcram/FreeCAD-APLAN/stargazers
+[issues-shield]: https://img.shields.io/github/issues/martcram/FreeCAD-APLAN.svg?style=for-the-badge
+[issues-url]: https://github.com/martcram/FreeCAD-APLAN/issues
+[license-shield]: https://img.shields.io/github/license/martcram/FreeCAD-APLAN.svg?style=for-the-badge
+[license-url]: https://github.com/martcram/FreeCAD-APLAN/blob/master/LICENSE.txt
