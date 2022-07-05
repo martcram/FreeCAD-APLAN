@@ -30,6 +30,7 @@ from aplantools import aplanutils
 try:
     import Aplan
     import aplansolvers.aplan_obstruction_detectors.base_obstruction_detector as base
+    import aplansolvers.aplan_obstruction_detectors.base_view_obstruction_detector as baseView
     import enum
     import FreeCAD
     if FreeCAD.GuiUp:
@@ -180,7 +181,7 @@ class OCCT(base.IObstructionDetector):
                                     for motionDirection in base.CartesianMotionDirection]
 
 
-class VPOCCT(base.IVPObstructionDetector):
+class VPOCCT(baseView.IVPObstructionDetector):
     def setEdit(self, vobj, mode=0):
         task = _TaskPanel(vobj.Object)
         FreeCADGui.Control.showDialog(task)
@@ -203,7 +204,7 @@ class VPOCCT(base.IVPObstructionDetector):
         return True
 
 
-class _TaskPanel(base.ITaskPanel):
+class _TaskPanel(baseView.ITaskPanel):
     """
     The TaskPanel for APLAN ConnectionDetectorSwellOCCT object
     """
@@ -378,9 +379,9 @@ class _TaskPanel(base.ITaskPanel):
         self._fixedStepSize = float(self.form.dsb_fixed_step_size.text())
 
     def __reportProgress(self, progress: typing.Dict) -> None:
-        self.form.te_output.setTextColor(base.MessageType(progress["type"]).value)
+        self.form.te_output.setTextColor(baseView.MessageType(progress["type"]).value)
         self.form.te_output.append(progress["msg"])
-        self.form.te_output.setTextColor(base.MessageType.INFO.value)
+        self.form.te_output.setTextColor(baseView.MessageType.INFO.value)
 
     def __run(self) -> None:
         if self._solverThread is None or not self._solverThread.isRunning():
@@ -758,7 +759,7 @@ class OCCTSolver:
         return list(intersectionComponents), list(intervals)
 
 
-class Worker(base.BaseWorker):
+class Worker(baseView.BaseWorker):
     def __init__(self, detectorType: str, inputParams: typing.Dict) -> None:
         super(Worker, self).__init__(detectorType)
         self._inputParams: typing.Dict = inputParams
@@ -774,15 +775,15 @@ class Worker(base.BaseWorker):
 
     def run(self) -> None:
         self.progress.emit({"msg": ">>> STARTED",
-                            "type": base.MessageType.INFO})
+                            "type": baseView.MessageType.INFO})
         self._isRunning = True
         computationTime: float = 0.0
 
         try:
             self.progress.emit({"msg": "====== Refining ======",
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
             self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
             time0: float = time.perf_counter()
 
             componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
@@ -795,27 +796,27 @@ class Worker(base.BaseWorker):
             targetDict: typing.Dict
             for motionDirLabel, targetDict in componentsIntervalDict.items():
                 self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
-                                    "type": base.MessageType.INFO})
+                                    "type": baseView.MessageType.INFO})
                 targetLabel: str
                 compIntervalPairs: typing.List
                 for targetLabel, compIntervalPairs in targetDict.items():
                     noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
                     noPotentialObstructions += noIntersectionComponents
                     self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
-                                        "type": base.MessageType.INFO})
+                                        "type": baseView.MessageType.INFO})
             self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
-                                        "type": base.MessageType.INFO})
+                                        "type": baseView.MessageType.INFO})
             self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
 
             if not self._isRunning:
                 self.__abort()
                 return
 
             self.progress.emit({"msg": "====== Solving =======",
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
             self.progress.emit({"msg": "Performing the {} solver method".format(self._solverMethod.value[0]),
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
             time2: float = time.perf_counter()
 
             geometricalConstraints: typing.Dict[str, typing.Set[typing.Tuple]] = self._solver.solve(self._solverMethod, self._configParamSolver, self._configParamSolverGeneral,
@@ -828,16 +829,16 @@ class Worker(base.BaseWorker):
             geomConstraints_: typing.Set[typing.Tuple]
             for motionDir_, geomConstraints_ in geometricalConstraints.items():    
                 self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.upper(), len(geomConstraints_)),
-                                    "type": base.MessageType.FOCUS})
+                                    "type": baseView.MessageType.FOCUS})
             self.progress.emit({"msg": "> Done: {:.3f}s".format(time3-time2),
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
 
             if not self._isRunning:
                 self.__abort()
                 return
 
             self.progress.emit({"msg": ">>> FINISHED",
-                                "type": base.MessageType.INFO})
+                                "type": baseView.MessageType.INFO})
 
             self._isRunning = False
             self.finished.emit({"time": computationTime,
@@ -845,7 +846,7 @@ class Worker(base.BaseWorker):
         
         except Exception as e:
             self.progress.emit({"msg": ">>> ERROR\n{}\nERROR <<<".format(e),
-                                "type": base.MessageType.ERROR})
+                                "type": baseView.MessageType.ERROR})
             self.__abort()
   
     def stop(self) -> None:
@@ -855,5 +856,5 @@ class Worker(base.BaseWorker):
     def __abort(self) -> None:
         self.stop()
         self.progress.emit({"msg": ">>> ABORTED",
-                            "type": base.MessageType.WARNING})
+                            "type": baseView.MessageType.WARNING})
         self.finished.emit({})
