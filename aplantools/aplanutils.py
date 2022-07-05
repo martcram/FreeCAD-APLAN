@@ -26,11 +26,16 @@ __title__ = "APLAN Utilities"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-import AplanGui
 import FreeCAD
-import FreeCADGui
 import ObjectsAplan
-from PySide2 import QtWidgets
+
+if FreeCAD.GuiUp:
+    import FreeCADGui
+    import AplanGui
+    try:
+        from PySide2 import QtWidgets
+    except ImportError as ie:
+        print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 # Source: src/Mod/Fem/femtools/femutils.py
