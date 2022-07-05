@@ -187,6 +187,13 @@ class OCCTSolver:
         self._partPointsSampleDict: typing.Dict = {}
 
     def setComponents(self, components: typing.List) -> None:
+        if not FreeCAD.GuiUp: 
+            # In order for TopoShapePy::proximity to work, every shape's faces need to be tessellated. 
+            # This is not done by default when FreeCAD's GUI is not running. 
+            # Source: https://forum.freecadweb.org/viewtopic.php?t=22857
+            for component in components:
+                for face in component.Shape.Faces:
+                    face.tessellate(0.1)
         self._componentsDict = {component.Label: component for component in components}
 
     def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.Dict:
@@ -278,7 +285,7 @@ class OCCTSolver:
                         elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
                             vector_ = FreeCAD.Vector(0.0, 0.0, stepSize)
                         target.Placement.move(vector_)
-                        
+
                         obstacles: typing.Set = {obst for obst in potentialObstacles if obst not in collidingObjects}
                         collidingObjects = self.__detectCollisions(target, obstacles, collidingObjects, method, configParam)
 
@@ -326,7 +333,7 @@ class OCCTSolver:
                     #             break
 
                     # if not inside_pt_found:
-                    
+
             overlappedSubShapes0, overlappedSubShapes1 = target.Shape.proximity(obl.Shape, float(configParams["overlapTolerance"]))
             if len(overlappedSubShapes0) > 0 or len(overlappedSubShapes1) > 0:
                 if solverMethod == SolverMethod.DistToShape:
