@@ -31,7 +31,10 @@ __url__ = "https://www.freecadweb.org"
 #  @{
 
 import FreeCAD
-import typing
+try:
+    import typing
+except ImportError as ie:
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 # ********* analysis objects ************************************************
