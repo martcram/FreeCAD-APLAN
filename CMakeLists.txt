@@ -46,6 +46,7 @@ SET(AplanSolvers_SRCS
     aplansolvers/aplan_obstruction_detectors/base_obstruction_detector.py
     aplansolvers/aplan_obstruction_detectors/base_view_obstruction_detector.py
     aplansolvers/aplan_obstruction_detectors/occt.py
+    aplansolvers/aplan_obstruction_detectors/occt_view.py
 )
 
 SET(AplanTools_SRCS
