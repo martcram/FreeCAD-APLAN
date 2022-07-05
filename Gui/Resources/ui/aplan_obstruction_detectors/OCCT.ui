@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConnectionDetectorSwellOCCT</class>
- <widget class="QWidget" name="ConnectionDetectorSwellOCCT">
+ <class>ObstructionDetectorOCCT</class>
+ <widget class="QWidget" name="ObstructionDetectorOCCT">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>928</height>
+    <height>945</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Connection detection</string>
+   <string>Obstruction detection</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
