@@ -422,16 +422,18 @@ class Worker(baseView.BaseWorker):
                                 "type": baseView.MessageType.INFO})
             time2: float = time.perf_counter()
 
-            geometricalConstraints: typing.Dict[str, typing.Set[typing.Tuple]] = self._solver.solve(self._solverMethod, self._configParamSolver, self._configParamSolverGeneral,
-                                                                                                    componentsIntervalDict=componentsIntervalDict)
+            geometricalConstraints: typing.Dict[base.CartesianMotionDirection, 
+                                                typing.Set[typing.Tuple[str, str]]] = self._solver.solve(self._solverMethod, self._configParamSolver, 
+                                                                                                         self._configParamSolverGeneral,
+                                                                                                         componentsIntervalDict=componentsIntervalDict)
 
             time3: float = time.perf_counter()
             computationTime += time3-time2
 
-            motionDir_: str
-            geomConstraints_: typing.Set[typing.Tuple]
+            motionDir_: base.CartesianMotionDirection
+            geomConstraints_: typing.Set[typing.Tuple[str, str]]
             for motionDir_, geomConstraints_ in geometricalConstraints.items():    
-                self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.upper(), len(geomConstraints_)),
+                self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.name.upper(), len(geomConstraints_)),
                                     "type": baseView.MessageType.FOCUS})
             self.progress.emit({"msg": "> Done: {:.3f}s".format(time3-time2),
                                 "type": baseView.MessageType.INFO})

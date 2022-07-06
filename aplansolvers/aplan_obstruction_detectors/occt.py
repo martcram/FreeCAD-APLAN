@@ -228,10 +228,10 @@ class OCCTSolver:
                 componentsIntervalDict[motionDirection_.name][target.Label] = [intersectionComponents, intervals]
         return componentsIntervalDict
 
-    def solve(self, method: SolverMethod, configParam: typing.Dict, configParamGeneral: typing.Dict, **kwargs) -> typing.Dict[str, typing.Set[typing.Tuple]]:
+    def solve(self, method: SolverMethod, configParam: typing.Dict, configParamGeneral: typing.Dict, **kwargs) -> typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]]:
         componentsIntervalDict: typing.Dict = kwargs.get("componentsIntervalDict", self.refine(RefinementMethod.None_, {}))
 
-        geomConstraints: typing.Dict[str, typing.Set[typing.Tuple]] = {motionDir.name: set() for motionDir in self._nonRedundantMotionDirs}
+        geomConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = {motionDir: set() for motionDir in self._nonRedundantMotionDirs}
         motionDirection_: base.CartesianMotionDirection
         for motionDirection_ in self._nonRedundantMotionDirs:
             if not self._isRunning:
@@ -302,7 +302,7 @@ class OCCTSolver:
                 baseVector = targetStartPosition.Base
                 target.Placement = FreeCAD.Placement(baseVector, targetStartPosition.Rotation)
 
-                geomConstraints[motionDirection_.name] = geomConstraints[motionDirection_.name].union({(target.Label, obj.Label) for obj in collidingObjects})
+                geomConstraints[motionDirection_] = geomConstraints[motionDirection_].union({(target.Label, obj.Label) for obj in collidingObjects})
         return geomConstraints
 
     def stop(self) -> None:
