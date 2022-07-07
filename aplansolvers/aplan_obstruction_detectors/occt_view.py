@@ -34,7 +34,11 @@ import aplansolvers.aplan_obstruction_detectors.occt as occt
 from aplantools import aplanutils
 try:
     import itertools
+    import json
+    import os
     from PySide2 import QtCore, QtWidgets
+    import subprocess
+    import sys
     import time
     import typing
 except ImportError as ie:
@@ -454,6 +458,36 @@ class Worker(baseView.BaseWorker):
                                 "type": baseView.MessageType.ERROR})
             self.__abort()
   
+    def multiprocess(self) -> typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]]:
+        geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = {}
+
+        MULTIPROC_SCRIPT_PATH: typing.Final[str] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                                                                "{}_multiproc.py".format(self._detectorType.lower()))
+        FREECAD_PYTHON_PATH: typing.Optional[str] = os.getenv("FREECAD_PYTHON_PATH")
+        if FREECAD_PYTHON_PATH:
+            sys.path.append(FREECAD_PYTHON_PATH)
+            cmd = [FREECAD_PYTHON_PATH, MULTIPROC_SCRIPT_PATH,
+                   "--file_path", "/home/cramer/OneDrive/programming/freecad/FreeCAD-models/Bourjault_ballpoint_simplified/asm_bourjault_ballpoint.FCStd",
+                   "--component_labels", str(list(self._componentsDict.keys())),
+                   "--motion_directions", str([m.value for m in self._motionDirections]),
+                   "--refinement_method", self._refinementMethod.name,
+                   "--config_param_refinement", json.dumps(self._configParamRefinement),
+                   "--solver_method", self._solverMethod.name,
+                   "--config_param_solver", json.dumps(self._configParamSolver),
+                   "--config_param_solver_general", json.dumps(self._configParamSolverGeneral)]
+
+            subprocessReturn: typing.Dict[int, typing.Set[typing.Tuple[str, str]]] = eval(subprocess.run(cmd, capture_output=True).stdout.decode("utf-8"))
+
+            motionDirValue: int
+            geomConstraints: typing.Set[typing.Tuple[str, str]]
+            for motionDirValue, geomConstraints in subprocessReturn.items():
+                geometricalConstraints[base.CartesianMotionDirection(motionDirValue)] = geomConstraints
+        else:
+            geometricalConstraints = {motionDirection: set() for motionDirection in self._motionDirections}
+            aplanutils.displayAplanError("Missing environment variable!",
+                                         "Please add FREECAD_PYTHON_PATH (i.e. the path of the Python executable FreeCAD was built with) to your machine's environment variables.")
+        return geometricalConstraints
+
     def stop(self) -> None:
         self._isRunning = False
         self._solver.stop()

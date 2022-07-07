@@ -154,21 +154,6 @@ class BaseWorker(QtCore.QObject):
     def run(self) -> None:
         raise NotImplementedError
 
-    def multiprocess(self) -> None:
-        import os
-        import sys
-
-        MULTIPROC_SCRIPT_PATH: typing.Final[str] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                                                "{}_multiproc.py".format(self._detectorType.lower()))
-
-        FREECAD_PYTHON_PATH: typing.Optional[str] = os.getenv("FREECAD_PYTHON_PATH")
-        if FREECAD_PYTHON_PATH:
-            sys.path.append(FREECAD_PYTHON_PATH)
-            cmd: typing.List[str] = [FREECAD_PYTHON_PATH, MULTIPROC_SCRIPT_PATH, "--var", "var1"]
-        else:
-            aplanutils.displayAplanError("Missing environment variable!",
-                                         "Please add FREECAD_PYTHON_PATH (i.e. the path of the Python executable FreeCAD was built with) to your machine's environment variables.")
-    
     def stop(self):
         self._isRunning = False
 
