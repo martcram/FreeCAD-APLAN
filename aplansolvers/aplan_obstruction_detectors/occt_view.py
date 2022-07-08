@@ -289,6 +289,9 @@ class _TaskPanel(baseView.ITaskPanel):
             self._worker.finished.connect(self._solverThread.quit)
             self._worker.finished.connect(self._worker.deleteLater)
             self._worker.error.connect(self.__handleError)
+            # QtCore.Qt.BlockingQueuedConnection: Wait for a SLOT to finish its execution
+            self._worker.movePart.connect(self.__movePart, QtCore.Qt.BlockingQueuedConnection)
+            self._worker.setPlacement.connect(self.__setPartPlacement, QtCore.Qt.BlockingQueuedConnection)
 
             # Start solver thread
             self._solverThread.start()
@@ -387,8 +390,22 @@ class _TaskPanel(baseView.ITaskPanel):
         self.obj.MultiprocessingEnabled = self._multiprocessingEnabled
         self.obj.LinearDeflection = self._linearDeflection
 
+    def __movePart(self, inputParams: typing.Dict) -> None:
+        part = inputParams["part"]
+        displVector = inputParams["vector"]
+        part.Placement.move(displVector)
+
+    def __setPartPlacement(self, inputParams: typing.Dict) -> None:
+        part = inputParams["part"]
+        baseVector = inputParams.get("baseVector", part.Placement.Base)
+        rotationVector = inputParams.get("rotationVector", part.Placement.Rotation)
+        part.Placement = FreeCAD.Placement(baseVector, rotationVector)
+
 
 class Worker(baseView.BaseWorker):
+    movePart: QtCore.Signal = QtCore.Signal(dict)
+    setPlacement: QtCore.Signal = QtCore.Signal(dict)
+
     def __init__(self, detectorType: str, inputParams: typing.Dict) -> None:
         super(Worker, self).__init__(detectorType)
         self._inputParams: typing.Dict = inputParams
@@ -475,7 +492,9 @@ class Worker(baseView.BaseWorker):
 
                 geometricalConstraints = self._solver.solve(self._solverMethod, self._configParamSolver, 
                                                             self._configParamSolverGeneral,
-                                                            componentsIntervalDict=componentsIntervalDict)
+                                                            componentsIntervalDict=componentsIntervalDict,
+                                                            movePart=self.__movePart,
+                                                            setPartPlacement=self.__setPartPlacement)
 
                 time3: float = time.perf_counter()
                 solverTime = time3-time2
@@ -547,6 +566,12 @@ class Worker(baseView.BaseWorker):
                 os.killpg(os.getpgid(self._subprocess.pid), signal.SIGTERM)
         else:
             self._solver.stop()
+
+    def __movePart(self, target, vector) -> None:
+        self.movePart.emit({"part": target, "vector": vector})
+
+    def __setPartPlacement(self, target, baseVector, rotationVector) -> None:
+        self.setPlacement.emit({"part": target, "baseVector": baseVector, "rotationVector": rotationVector})
 
     def __abort(self) -> None:
         self.stop()

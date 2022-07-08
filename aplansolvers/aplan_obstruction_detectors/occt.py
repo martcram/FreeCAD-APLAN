@@ -215,7 +215,7 @@ class OCCTSolver:
                     face.tessellate(self._linearDeflection)
         self._componentsDict = {component.Label: component for component in components}
 
-    def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.Dict:
+    def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.Dict:       
         overallBoundbox = FreeCAD.BoundBox()
         for component in self._componentsDict.values():
             overallBoundbox.add(component.Shape.BoundBox)
@@ -248,9 +248,12 @@ class OCCTSolver:
         return componentsIntervalDict
 
     def solve(self, method: SolverMethod, configParam: typing.Dict, configParamGeneral: typing.Dict, **kwargs) -> typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]]:
+        movePart: typing.Callable = kwargs.get("movePart", self.movePart)
+        setPartPlacement: typing.Callable = kwargs.get("setPartPlacement", self.setPartPlacement)
+        
         componentsIntervalDict: typing.Dict = kwargs.get("componentsIntervalDict", self.refine(RefinementMethod.None_, {}))
-
         geomConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = {motionDir: set() for motionDir in self._nonRedundantMotionDirs}
+
         motionDirection_: base.CartesianMotionDirection
         for motionDirection_ in self._nonRedundantMotionDirs:
             if not self._isRunning:
@@ -286,7 +289,7 @@ class OCCTSolver:
                         baseVector_ = FreeCAD.Vector(targetStartPosition.Base[0], interval[0]+difference, targetStartPosition.Base[2])
                     elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
                         baseVector_ = FreeCAD.Vector(targetStartPosition.Base[0], targetStartPosition.Base[1], interval[0]+difference)
-                    target.Placement = FreeCAD.Placement(baseVector_, targetStartPosition.Rotation)
+                    setPartPlacement(target, baseVector_, targetStartPosition.Rotation)
 
                     potentialObstacles: typing.List = componentsIntervalDict[motionDirection_.name][target.Label][0][index]
                     targetPosition = interval[0]
@@ -303,7 +306,7 @@ class OCCTSolver:
                             vector_ = FreeCAD.Vector(0.0, stepSize, 0.0)
                         elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
                             vector_ = FreeCAD.Vector(0.0, 0.0, stepSize)
-                        target.Placement.move(vector_)
+                        movePart(target, vector_)
 
                         obstacles: typing.Set = {obst for obst in potentialObstacles if obst not in collidingObjects}
                         collidingObjects = self.__detectCollisions(target, obstacles, collidingObjects, method, configParam)
@@ -318,11 +321,16 @@ class OCCTSolver:
                         elif motionDirection_ == base.CartesianMotionDirection.POS_Z:
                             targetPosition = target.Shape.BoundBox.ZMin
 
-                baseVector = targetStartPosition.Base
-                target.Placement = FreeCAD.Placement(baseVector, targetStartPosition.Rotation)
+                setPartPlacement(target, targetStartPosition.Base, targetStartPosition.Rotation)
 
                 geomConstraints[motionDirection_] = geomConstraints[motionDirection_].union({(target.Label, obj.Label) for obj in collidingObjects})
         return geomConstraints
+
+    def movePart(self, part, displacementVector) -> None:
+        part.Placement.move(displacementVector)
+    
+    def setPartPlacement(self, part, baseVector, rotationVector) -> None:
+        part.Placement = FreeCAD.Placement(baseVector, rotationVector)
 
     def stop(self) -> None:
         self._isRunning = False
