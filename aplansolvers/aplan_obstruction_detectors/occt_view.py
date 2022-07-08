@@ -37,6 +37,7 @@ try:
     import json
     import os
     from PySide2 import QtCore, QtWidgets
+    import signal
     import subprocess
     import sys
     import time
@@ -401,7 +402,6 @@ class Worker(baseView.BaseWorker):
         self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
         self._multiprocessingEnabled: bool = self._inputParams["multiprocessingEnabled"]
         self._linearDeflection: float = self._inputParams["linearDeflection"]
-        self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
     def run(self) -> None:
         self.progress.emit({"msg": ">>> STARTED",
@@ -420,6 +420,8 @@ class Worker(baseView.BaseWorker):
                                     "type": baseView.MessageType.INFO})
                 geometricalConstraints = self.multiprocess()
             else:
+                self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
+
                 self.progress.emit({"msg": "====== Refining ======",
                                     "type": baseView.MessageType.INFO})
                 self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
@@ -510,12 +512,16 @@ class Worker(baseView.BaseWorker):
                    "--config_param_solver", json.dumps(self._configParamSolver),
                    "--config_param_solver_general", json.dumps(self._configParamSolverGeneral)]
 
-            subprocessReturn: typing.Dict[int, typing.Set[typing.Tuple[str, str]]] = eval(subprocess.run(cmd, capture_output=True).stdout.decode("utf-8"))
+            self._subprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE, preexec_fn=os.setsid)
+            output: bytes = self._subprocess.communicate()[0]
 
-            motionDirValue: int
-            geomConstraints: typing.Set[typing.Tuple[str, str]]
-            for motionDirValue, geomConstraints in subprocessReturn.items():
-                geometricalConstraints[base.CartesianMotionDirection(motionDirValue)] = geomConstraints
+            if self._isRunning:
+                subprocessReturn: typing.Dict[int, typing.Set[typing.Tuple[str, str]]] = eval(output.decode("utf-8"))
+
+                motionDirValue: int
+                geomConstraints: typing.Set[typing.Tuple[str, str]]
+                for motionDirValue, geomConstraints in subprocessReturn.items():
+                    geometricalConstraints[base.CartesianMotionDirection(motionDirValue)] = geomConstraints
         else:
             geometricalConstraints = {motionDirection: set() for motionDirection in self._motionDirections}
             aplanutils.displayAplanError("Missing environment variable!",
@@ -524,7 +530,11 @@ class Worker(baseView.BaseWorker):
 
     def stop(self) -> None:
         self._isRunning = False
-        self._solver.stop()
+        if self._multiprocessingEnabled:
+            if self._subprocess.poll() is None:
+                os.killpg(os.getpgid(self._subprocess.pid), signal.SIGTERM)
+        else:
+            self._solver.stop()
 
     def __abort(self) -> None:
         self.stop()
