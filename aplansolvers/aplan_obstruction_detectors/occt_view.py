@@ -395,61 +395,71 @@ class Worker(baseView.BaseWorker):
                             "type": baseView.MessageType.INFO})
         self._isRunning = True
         computationTime: float = 0.0
+        solverTime: float = 0.0
 
         try:
-            self.progress.emit({"msg": "====== Refining ======",
-                                "type": baseView.MessageType.INFO})
-            self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
-                                "type": baseView.MessageType.INFO})
-            time0: float = time.perf_counter()
-
-            componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
-
-            time1: float = time.perf_counter()
-            computationTime += time1-time0
-
-            noPotentialObstructions: int = 0
-            motionDirLabel: str
-            targetDict: typing.Dict
-            for motionDirLabel, targetDict in componentsIntervalDict.items():
-                self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
+            geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = {}
+            if self._multiprocessingEnabled:
+                self.progress.emit({"msg": "====== Multiprocessing ======",
                                     "type": baseView.MessageType.INFO})
-                targetLabel: str
-                compIntervalPairs: typing.List
-                for targetLabel, compIntervalPairs in targetDict.items():
-                    noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
-                    noPotentialObstructions += noIntersectionComponents
-                    self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
+                self.progress.emit({"msg": "Performing the {} refinement method\nand the {} solver method".format(self._refinementMethod.value[0],
+                                                                                                                  self._solverMethod.value[0]),
+                                    "type": baseView.MessageType.INFO})
+                geometricalConstraints = self.multiprocess()
+            else:
+                self.progress.emit({"msg": "====== Refining ======",
+                                    "type": baseView.MessageType.INFO})
+                self.progress.emit({"msg": "Performing the {} refinement method".format(self._refinementMethod.value[0]),
+                                    "type": baseView.MessageType.INFO})
+                time0: float = time.perf_counter()
+
+                componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
+
+                time1: float = time.perf_counter()
+                computationTime += time1-time0
+
+                noPotentialObstructions: int = 0
+                motionDirLabel: str
+                targetDict: typing.Dict
+                for motionDirLabel, targetDict in componentsIntervalDict.items():
+                    self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
                                         "type": baseView.MessageType.INFO})
-            self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
-                                        "type": baseView.MessageType.INFO})
-            self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
-                                "type": baseView.MessageType.INFO})
+                    targetLabel: str
+                    compIntervalPairs: typing.List
+                    for targetLabel, compIntervalPairs in targetDict.items():
+                        noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
+                        noPotentialObstructions += noIntersectionComponents
+                        self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
+                                            "type": baseView.MessageType.INFO})
+                self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
+                                            "type": baseView.MessageType.INFO})
+                self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
+                                    "type": baseView.MessageType.INFO})
 
-            if not self._isRunning:
-                self.__abort()
-                return
+                if not self._isRunning:
+                    self.__abort()
+                    return
 
-            self.progress.emit({"msg": "====== Solving =======",
-                                "type": baseView.MessageType.INFO})
-            self.progress.emit({"msg": "Performing the {} solver method".format(self._solverMethod.value[0]),
-                                "type": baseView.MessageType.INFO})
-            time2: float = time.perf_counter()
+                self.progress.emit({"msg": "====== Solving =======",
+                                    "type": baseView.MessageType.INFO})
+                self.progress.emit({"msg": "Performing the {} solver method".format(self._solverMethod.value[0]),
+                                    "type": baseView.MessageType.INFO})
+                time2: float = time.perf_counter()
 
-            geometricalConstraints: typing.Dict[base.CartesianMotionDirection, 
-                                                typing.Set[typing.Tuple[str, str]]] = self._solver.solve(self._solverMethod, self._configParamSolver, 
-                                                                                                         self._configParamSolverGeneral,
-                                                                                                         componentsIntervalDict=componentsIntervalDict)
+                geometricalConstraints = self._solver.solve(self._solverMethod, self._configParamSolver, 
+                                                            self._configParamSolverGeneral,
+                                                            componentsIntervalDict=componentsIntervalDict)
 
-            time3: float = time.perf_counter()
-            computationTime += time3-time2
+                time3: float = time.perf_counter()
+                solverTime = time3-time2
+                computationTime += solverTime
 
             motionDir_: base.CartesianMotionDirection
             geomConstraints_: typing.Set[typing.Tuple[str, str]]
             for motionDir_, geomConstraints_ in geometricalConstraints.items():    
                 self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.name.upper(), len(geomConstraints_)),
                                     "type": baseView.MessageType.FOCUS})
-            self.progress.emit({"msg": "> Done: {:.3f}s".format(time3-time2),
+            self.progress.emit({"msg": "> Done: {:.3f}s".format(solverTime),
                                 "type": baseView.MessageType.INFO})
 
             if not self._isRunning:
