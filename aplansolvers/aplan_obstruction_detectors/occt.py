@@ -184,6 +184,15 @@ class OCCT(base.IObstructionDetector):
                 "..."
             )
             obj.MultiprocessingEnabled = False
+        
+        if not hasattr(obj, "LinearDeflection"):
+            obj.addProperty(
+                "App::PropertyFloat",
+                "LinearDeflection",
+                "Obstruction detector",
+                "..."
+            )
+            obj.LinearDeflection = 0.1
 
 
 class OCCTSolver:

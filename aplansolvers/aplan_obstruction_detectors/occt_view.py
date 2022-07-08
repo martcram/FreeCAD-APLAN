@@ -140,6 +140,7 @@ class _TaskPanel(baseView.ITaskPanel):
                                                                   "volumeTolerance": {"label": self.form.l_label_volume_tolerance, 
                                                                                       "value": self.form.dsb_volume_tolerance}}
         self._multiprocessingEnabled: bool = bool(self.obj.MultiprocessingEnabled)
+        self._linearDeflection: float = float(self.obj.LinearDeflection)
 
         # Update task panel form
         #* General properties
@@ -183,6 +184,7 @@ class _TaskPanel(baseView.ITaskPanel):
                                 "cb_{}".format(motionDir_.name.lower())).setChecked(True)
         self.form.cb_multiprocessing.setChecked(self._multiprocessingEnabled)
         self.__toggleMultiprocessing((QtCore.Qt.Unchecked, QtCore.Qt.Checked)[self._multiprocessingEnabled])
+        self.form.dsb_linear_deflection.setValue(self._linearDeflection)
         self.form.l_time.setText("{} s".format(self._computationTime))
 
         # Connect signals and slots
@@ -206,6 +208,7 @@ class _TaskPanel(baseView.ITaskPanel):
                                                        self.__readCheckBoxState(state, objName))
         self.form.btn_run.clicked.connect(self.__run)
         self.form.cb_multiprocessing.stateChanged.connect(self.__toggleMultiprocessing)
+        self.form.dsb_linear_deflection.valueChanged.connect(self.__readInputFields)
 
     def getStandardButtons(self) -> int:
         button_value = int(QtWidgets.QDialogButtonBox.Cancel)
@@ -245,6 +248,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self._stepSizeCoefficient = float(self.form.dsb_step_size_coeff.text())
         self._minStepSize = float(self.form.dsb_min_step_size.text())
         self._fixedStepSize = float(self.form.dsb_fixed_step_size.text())
+        self._linearDeflection = float(self.form.dsb_linear_deflection.text())
 
     def __reportProgress(self, progress: typing.Dict) -> None:
         self.form.te_output.setTextColor(baseView.MessageType(progress["type"]).value)
@@ -341,6 +345,12 @@ class _TaskPanel(baseView.ITaskPanel):
 
     def __toggleMultiprocessing(self, state: QtCore.Qt.CheckState) -> None:
         self._multiprocessingEnabled = (state == QtCore.Qt.Checked)
+        if self._multiprocessingEnabled:
+            self.form.l_label_linear_deflection.setHidden(False)
+            self.form.dsb_linear_deflection.setHidden(False)
+        else:
+            self.form.l_label_linear_deflection.setHidden(True)
+            self.form.dsb_linear_deflection.setHidden(True)
 
     def __toggleVariableStepSize(self, state: QtCore.Qt.CheckState) -> None:
         self._variableStepSizeEnabled = (state == QtCore.Qt.Checked)
@@ -373,6 +383,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self.obj.SampleCoefficient = self._sampleCoefficient
         self.obj.MotionDirections = [motionDir.name for motionDir in self._motionDirections]
         self.obj.MultiprocessingEnabled = self._multiprocessingEnabled
+        self.obj.LinearDeflection = self._linearDeflection
 
 
 class Worker(baseView.BaseWorker):
