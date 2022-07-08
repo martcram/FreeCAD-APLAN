@@ -106,14 +106,14 @@ def main(arguments: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--file_path")
-    parser.add_argument("--component_labels")
-    parser.add_argument("--motion_directions")
-    parser.add_argument("--refinement_method")
-    parser.add_argument("--config_param_refinement")
-    parser.add_argument("--solver_method")
-    parser.add_argument("--config_param_solver")
-    parser.add_argument("--config_param_solver_general")
+    parser.add_argument("--file_path",                   type=str)
+    parser.add_argument("--component_labels",            type=str)
+    parser.add_argument("--motion_directions",           type=str)
+    parser.add_argument("--refinement_method",           type=str, nargs='?', default=occt.RefinementMethod.None_.name)
+    parser.add_argument("--config_param_refinement",     type=str, nargs='?', default="{}")
+    parser.add_argument("--solver_method",               type=str)
+    parser.add_argument("--config_param_solver",         type=str)
+    parser.add_argument("--config_param_solver_general", type=str)
     args: argparse.Namespace
     args, _ = parser.parse_known_args()
     main(args)
