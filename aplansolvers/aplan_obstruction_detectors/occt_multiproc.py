@@ -33,6 +33,7 @@ try:
     import json
     import os
     import sys
+    import time
     import typing
 except ImportError as ie:
     print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
@@ -59,14 +60,16 @@ def multiprocess(filePath: str,
                  configParamRefinement: typing.Dict,
                  solverMethod: occt.SolverMethod, 
                  configParamSolver: typing.Dict,
-                 configParamSolverGeneral: typing.Dict) -> typing.Set[typing.Tuple[str, str]]:
+                 configParamSolverGeneral: typing.Dict) -> typing.Tuple[typing.Set[typing.Tuple[str, str]], float]:
     doc = FreeCAD.openDocument(filePath, hidden=True)
     componentsDict = {label: doc.getObjectsByLabel(label)[0] for label in componentLabels}
     solver: occt.OCCTSolver = occt.OCCTSolver(list(componentsDict.values()), [motionDirection], linearDeflection)
+    time0: float = time.perf_counter()
     componentsIntervalDict: typing.Dict = solver.refine(refinementMethod, configParamRefinement)
     geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = solver.solve(solverMethod, configParamSolver, configParamSolverGeneral,
                                                                                                                           componentsIntervalDict=componentsIntervalDict)
-    return geometricalConstraints[motionDirection]
+    time1: float = time.perf_counter()
+    return geometricalConstraints[motionDirection], time1-time0
 
 
 def main(arguments: argparse.Namespace) -> None:
@@ -95,16 +98,16 @@ def main(arguments: argparse.Namespace) -> None:
 
     noMotionDirections: int = len(motionDirections)
     with ProcessPoolExecutor(max_workers = noMotionDirections) as executor:
-        print({motionDirection.value: constraints for motionDirection, constraints in zip(motionDirections, executor.map(multiprocess,
-                                                                                                                         itertools.repeat(filePath,                 noMotionDirections),
-                                                                                                                         itertools.repeat(componentLabels,          noMotionDirections),
-                                                                                                                         nonRedundantMotionDirs,
-                                                                                                                         itertools.repeat(linearDeflection,         noMotionDirections),
-                                                                                                                         itertools.repeat(refinementMethod,         noMotionDirections),
-                                                                                                                         itertools.repeat(configParamRefinement,    noMotionDirections),
-                                                                                                                         itertools.repeat(solverMethod,             noMotionDirections),
-                                                                                                                         itertools.repeat(configParamSolver,        noMotionDirections),
-                                                                                                                         itertools.repeat(configParamSolverGeneral, noMotionDirections)))})
+        print({motionDirection.value: output for motionDirection, output in zip(motionDirections, executor.map(multiprocess,
+                                                                                                               itertools.repeat(filePath,                 noMotionDirections),
+                                                                                                               itertools.repeat(componentLabels,          noMotionDirections),
+                                                                                                               nonRedundantMotionDirs,
+                                                                                                               itertools.repeat(linearDeflection,         noMotionDirections),
+                                                                                                               itertools.repeat(refinementMethod,         noMotionDirections),
+                                                                                                               itertools.repeat(configParamRefinement,    noMotionDirections),
+                                                                                                               itertools.repeat(solverMethod,             noMotionDirections),
+                                                                                                               itertools.repeat(configParamSolver,        noMotionDirections),
+                                                                                                               itertools.repeat(configParamSolverGeneral, noMotionDirections)))})
 
 
 if __name__ == "__main__":

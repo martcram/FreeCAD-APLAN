@@ -418,7 +418,19 @@ class Worker(baseView.BaseWorker):
                 self.progress.emit({"msg": "Performing the {} refinement method\nand the {} solver method".format(self._refinementMethod.value[0],
                                                                                                                   self._solverMethod.value[0]),
                                     "type": baseView.MessageType.INFO})
-                geometricalConstraints = self.multiprocess()
+                output: typing.Dict[base.CartesianMotionDirection, typing.Tuple[typing.Set[typing.Tuple[str, str]], float]]= self.multiprocess()
+                computationTimes: typing.List[float] = []
+
+                motionDir: base.CartesianMotionDirection
+                geomConstraints: typing.Tuple[typing.Set[typing.Tuple[str, str]], float]
+                for motionDir, geomConstraints in output.items():
+                    geometricalConstraints[motionDir] = geomConstraints[0]
+                    computationTimes.append(geomConstraints[1])
+                    self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir.name.upper(), len(geomConstraints[0])),
+                                        "type": baseView.MessageType.FOCUS})
+                    self.progress.emit({"msg": "\t> Done: {:.3f}s".format(geomConstraints[1]),
+                                        "type": baseView.MessageType.INFO})
+                computationTime = max(computationTimes)
             else:
                 self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
@@ -469,13 +481,13 @@ class Worker(baseView.BaseWorker):
                 solverTime = time3-time2
                 computationTime += solverTime
 
-            motionDir_: base.CartesianMotionDirection
-            geomConstraints_: typing.Set[typing.Tuple[str, str]]
-            for motionDir_, geomConstraints_ in geometricalConstraints.items():    
-                self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.name.upper(), len(geomConstraints_)),
-                                    "type": baseView.MessageType.FOCUS})
-            self.progress.emit({"msg": "> Done: {:.3f}s".format(solverTime),
-                                "type": baseView.MessageType.INFO})
+                motionDir_: base.CartesianMotionDirection
+                geomConstraints_: typing.Set[typing.Tuple[str, str]]
+                for motionDir_, geomConstraints_ in geometricalConstraints.items():    
+                    self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.name.upper(), len(geomConstraints_)),
+                                        "type": baseView.MessageType.FOCUS})
+                self.progress.emit({"msg": "> Done: {:.3f}s".format(solverTime),
+                                    "type": baseView.MessageType.INFO})
 
             if not self._isRunning:
                 self.__abort()
@@ -493,8 +505,8 @@ class Worker(baseView.BaseWorker):
                                 "type": baseView.MessageType.ERROR})
             self.__abort()
   
-    def multiprocess(self) -> typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]]:
-        geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = {}
+    def multiprocess(self) -> typing.Dict[base.CartesianMotionDirection, typing.Tuple[typing.Set[typing.Tuple[str, str]], float]]:
+        geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Tuple[typing.Set[typing.Tuple[str, str]], float]] = {}
 
         MULTIPROC_SCRIPT_PATH: typing.Final[str] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
                                                                 "{}_multiproc.py".format(self._detectorType.lower()))
@@ -516,14 +528,14 @@ class Worker(baseView.BaseWorker):
             output: bytes = self._subprocess.communicate()[0]
 
             if self._isRunning:
-                subprocessReturn: typing.Dict[int, typing.Set[typing.Tuple[str, str]]] = eval(output.decode("utf-8"))
+                subprocessReturn: typing.Dict[int, typing.Tuple[typing.Set[typing.Tuple[str, str]], float]] = eval(output.decode("utf-8"))
 
                 motionDirValue: int
-                geomConstraints: typing.Set[typing.Tuple[str, str]]
-                for motionDirValue, geomConstraints in subprocessReturn.items():
-                    geometricalConstraints[base.CartesianMotionDirection(motionDirValue)] = geomConstraints
+                result: typing.Tuple[typing.Set[typing.Tuple[str, str]], float]
+                for motionDirValue, result in subprocessReturn.items():
+                    geometricalConstraints[base.CartesianMotionDirection(motionDirValue)] = result
         else:
-            geometricalConstraints = {motionDirection: set() for motionDirection in self._motionDirections}
+            geometricalConstraints = {motionDirection: (set(), 0.0) for motionDirection in self._motionDirections}
             aplanutils.displayAplanError("Missing environment variable!",
                                          "Please add FREECAD_PYTHON_PATH (i.e. the path of the Python executable FreeCAD was built with) to your machine's environment variables.")
         return geometricalConstraints
