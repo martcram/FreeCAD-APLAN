@@ -54,6 +54,7 @@ except ModuleNotFoundError as me:
 def multiprocess(filePath: str,
                  componentLabels: typing.List[str],
                  motionDirection: base.CartesianMotionDirection,
+                 linearDeflection: float,
                  refinementMethod: occt.RefinementMethod, 
                  configParamRefinement: typing.Dict,
                  solverMethod: occt.SolverMethod, 
@@ -61,7 +62,7 @@ def multiprocess(filePath: str,
                  configParamSolverGeneral: typing.Dict) -> typing.Set[typing.Tuple[str, str]]:
     doc = FreeCAD.openDocument(filePath, hidden=True)
     componentsDict = {label: doc.getObjectsByLabel(label)[0] for label in componentLabels}
-    solver: occt.OCCTSolver = occt.OCCTSolver(list(componentsDict.values()), [motionDirection])
+    solver: occt.OCCTSolver = occt.OCCTSolver(list(componentsDict.values()), [motionDirection], linearDeflection)
     componentsIntervalDict: typing.Dict = solver.refine(refinementMethod, configParamRefinement)
     geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = solver.solve(solverMethod, configParamSolver, configParamSolverGeneral,
                                                                                                                           componentsIntervalDict=componentsIntervalDict)
@@ -74,6 +75,7 @@ def main(arguments: argparse.Namespace) -> None:
     motionDirections: typing.Set[base.CartesianMotionDirection] = set(map(base.CartesianMotionDirection, eval(arguments.motion_directions)))
     nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
                                                                          for motionDir_ in motionDirections}
+    linearDeflection: float = float(arguments.linear_deflection)
 
     try:
         refinementMethod: occt.RefinementMethod = next(r for r in occt.RefinementMethod if r.name == arguments.refinement_method)
@@ -97,6 +99,7 @@ def main(arguments: argparse.Namespace) -> None:
                                                                                                                          itertools.repeat(filePath,                 noMotionDirections),
                                                                                                                          itertools.repeat(componentLabels,          noMotionDirections),
                                                                                                                          nonRedundantMotionDirs,
+                                                                                                                         itertools.repeat(linearDeflection,         noMotionDirections),
                                                                                                                          itertools.repeat(refinementMethod,         noMotionDirections),
                                                                                                                          itertools.repeat(configParamRefinement,    noMotionDirections),
                                                                                                                          itertools.repeat(solverMethod,             noMotionDirections),
@@ -109,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--file_path",                   type=str)
     parser.add_argument("--component_labels",            type=str)
     parser.add_argument("--motion_directions",           type=str)
+    parser.add_argument("--linear_deflection",           type=str, nargs='?', default="0.1")
     parser.add_argument("--refinement_method",           type=str, nargs='?', default=occt.RefinementMethod.None_.name)
     parser.add_argument("--config_param_refinement",     type=str, nargs='?', default="{}")
     parser.add_argument("--solver_method",               type=str)

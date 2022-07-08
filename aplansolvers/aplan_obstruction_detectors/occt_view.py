@@ -273,7 +273,8 @@ class _TaskPanel(baseView.ITaskPanel):
                                         "configParamSolver": configParamSolver,
                                         "configParamSolverGeneral": configParamSolverGeneral,
                                         "motionDirections": self._motionDirections,
-                                        "multiprocessingEnabled": self._multiprocessingEnabled}
+                                        "multiprocessingEnabled": self._multiprocessingEnabled,
+                                        "linearDeflection": self._linearDeflection}
             self._solverThread = QtCore.QThread()
             self._worker: Worker = Worker(self.obj.Type, inputParams)
             self._worker.moveToThread(self._solverThread)
@@ -399,6 +400,7 @@ class Worker(baseView.BaseWorker):
         self._configParamSolverGeneral: typing.Dict = self._inputParams["configParamSolverGeneral"]
         self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
         self._multiprocessingEnabled: bool = self._inputParams["multiprocessingEnabled"]
+        self._linearDeflection: float = self._inputParams["linearDeflection"]
         self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
     def run(self) -> None:
@@ -501,6 +503,7 @@ class Worker(baseView.BaseWorker):
                    "--file_path", "/home/cramer/OneDrive/programming/freecad/FreeCAD-models/Bourjault_ballpoint_simplified/asm_bourjault_ballpoint.FCStd",
                    "--component_labels", str(list(self._componentsDict.keys())),
                    "--motion_directions", str([m.value for m in self._motionDirections]),
+                   "--linear_deflection", str(self._linearDeflection),
                    "--refinement_method", self._refinementMethod.name,
                    "--config_param_refinement", json.dumps(self._configParamRefinement),
                    "--solver_method", self._solverMethod.name,

@@ -196,8 +196,9 @@ class OCCT(base.IObstructionDetector):
 
 
 class OCCTSolver:
-    def __init__(self, components: typing.List, motionDirections: typing.Set[base.CartesianMotionDirection]) -> None:
+    def __init__(self, components: typing.List, motionDirections: typing.Set[base.CartesianMotionDirection], linearDeflection: float = 0.1) -> None:
         self._isRunning: bool = True
+        self._linearDeflection: float = linearDeflection
         self.setComponents(components)
         self._nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
                                                                                    for motionDir_ in motionDirections}
@@ -205,13 +206,13 @@ class OCCTSolver:
         self._partPointsSampleDict: typing.Dict = {}
 
     def setComponents(self, components: typing.List) -> None:
-        if not FreeCAD.GuiUp: 
+        if not FreeCAD.GuiUp:
             # In order for TopoShapePy::proximity to work, every shape's faces need to be tessellated. 
             # This is not done by default when FreeCAD's GUI is not running. 
             # Source: https://forum.freecadweb.org/viewtopic.php?t=22857
             for component in components:
                 for face in component.Shape.Faces:
-                    face.tessellate(0.1)
+                    face.tessellate(self._linearDeflection)
         self._componentsDict = {component.Label: component for component in components}
 
     def refine(self, method: RefinementMethod, configParam: typing.Dict) -> typing.Dict:
