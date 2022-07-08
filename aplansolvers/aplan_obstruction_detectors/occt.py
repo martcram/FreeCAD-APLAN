@@ -176,6 +176,15 @@ class OCCT(base.IObstructionDetector):
             obj.MotionDirections = [str(motionDirection.name) 
                                     for motionDirection in base.CartesianMotionDirection]
 
+        if not hasattr(obj, "MultiprocessingEnabled"):
+            obj.addProperty(
+                "App::PropertyBool",
+                "MultiprocessingEnabled",
+                "Obstruction detector",
+                "..."
+            )
+            obj.MultiprocessingEnabled = False
+
 
 class OCCTSolver:
     def __init__(self, components: typing.List, motionDirections: typing.Set[base.CartesianMotionDirection]) -> None:

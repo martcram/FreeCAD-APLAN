@@ -139,6 +139,7 @@ class _TaskPanel(baseView.ITaskPanel):
                                                                                         "value": self.form.dsb_sample_coefficient},
                                                                   "volumeTolerance": {"label": self.form.l_label_volume_tolerance, 
                                                                                       "value": self.form.dsb_volume_tolerance}}
+        self._multiprocessingEnabled: bool = bool(self.obj.MultiprocessingEnabled)
 
         # Update task panel form
         #* General properties
@@ -180,6 +181,8 @@ class _TaskPanel(baseView.ITaskPanel):
         for motionDir_ in self._motionDirections:
             self.form.findChild(QtWidgets.QCheckBox,
                                 "cb_{}".format(motionDir_.name.lower())).setChecked(True)
+        self.form.cb_multiprocessing.setChecked(self._multiprocessingEnabled)
+        self.__toggleMultiprocessing((QtCore.Qt.Unchecked, QtCore.Qt.Checked)[self._multiprocessingEnabled])
         self.form.l_time.setText("{} s".format(self._computationTime))
 
         # Connect signals and slots
@@ -202,6 +205,7 @@ class _TaskPanel(baseView.ITaskPanel):
                                 ).stateChanged.connect(lambda state, objName=motionDirection_.name: 
                                                        self.__readCheckBoxState(state, objName))
         self.form.btn_run.clicked.connect(self.__run)
+        self.form.cb_multiprocessing.stateChanged.connect(self.__toggleMultiprocessing)
 
     def getStandardButtons(self) -> int:
         button_value = int(QtWidgets.QDialogButtonBox.Cancel)
@@ -264,7 +268,8 @@ class _TaskPanel(baseView.ITaskPanel):
                                         "solverMethod": self._solverMethod,
                                         "configParamSolver": configParamSolver,
                                         "configParamSolverGeneral": configParamSolverGeneral,
-                                        "motionDirections": self._motionDirections}
+                                        "motionDirections": self._motionDirections,
+                                        "multiprocessingEnabled": self._multiprocessingEnabled}
             self._solverThread = QtCore.QThread()
             self._worker: Worker = Worker(self.obj.Type, inputParams)
             self._worker.moveToThread(self._solverThread)
@@ -334,6 +339,9 @@ class _TaskPanel(baseView.ITaskPanel):
         self.form.btn_run.setText("Abort")
         self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_ABORT))
 
+    def __toggleMultiprocessing(self, state: QtCore.Qt.CheckState) -> None:
+        self._multiprocessingEnabled = (state == QtCore.Qt.Checked)
+
     def __toggleVariableStepSize(self, state: QtCore.Qt.CheckState) -> None:
         self._variableStepSizeEnabled = (state == QtCore.Qt.Checked)
         if self._variableStepSizeEnabled:
@@ -364,6 +372,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self.obj.VolumeTolerance = self._volumeTolerance
         self.obj.SampleCoefficient = self._sampleCoefficient
         self.obj.MotionDirections = [motionDir.name for motionDir in self._motionDirections]
+        self.obj.MultiprocessingEnabled = self._multiprocessingEnabled
 
 
 class Worker(baseView.BaseWorker):
@@ -378,6 +387,7 @@ class Worker(baseView.BaseWorker):
         self._configParamSolver: typing.Dict = self._inputParams["configParamSolver"]
         self._configParamSolverGeneral: typing.Dict = self._inputParams["configParamSolverGeneral"]
         self._motionDirections: typing.Set[base.CartesianMotionDirection] = self._inputParams["motionDirections"]
+        self._multiprocessingEnabled: bool = self._inputParams["multiprocessingEnabled"]
         self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
 
     def run(self) -> None:
