@@ -31,15 +31,16 @@ __url__ = "https://www.freecadweb.org"
 #  \ingroup APLAN
 #  \brief FreeCAD APLAN topological constraints object
 
+import FreeCAD
+if FreeCAD.GuiUp:
+    from aplanviewprovider.view_topo_constraints import VPTopoConstraints
+from . import base_aplanpythonobject
+from aplanobjects import graphs
 from aplantools import aplanutils
 try:
-    from . import base_aplanpythonobject
-    from aplanobjects import graphs
-    from aplanviewprovider.view_topo_constraints import VPTopoConstraints
-    import FreeCAD
     import typing
 except ImportError as ie:
-    aplanutils.missingPythonModule(str(ie.name or ""))
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 def create(doc, analysis, constraints: typing.Set[typing.Tuple[str, str]], name="TopoConstraints"):

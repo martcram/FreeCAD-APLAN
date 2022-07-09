@@ -30,13 +30,11 @@ __url__ = "https://www.freecadweb.org"
 #  \ingroup APLAN
 #  \brief FreeCAD APLAN part filter object
 
-from aplantools import aplanutils
-try:
-    from . import base_aplanpythonobject
-    from aplantools import aplanutils
+import FreeCAD
+if FreeCAD.GuiUp:
     from aplanviewprovider.view_part_filter import ViewProviderPartFilter
-except ImportError as ie:
-    aplanutils.missingPythonModule(str(ie.name or ""))
+from . import base_aplanpythonobject
+from aplantools import aplanutils
 
 
 def create(doc, name: str = "PartFilter"):

@@ -30,15 +30,15 @@ __url__ = "https://www.freecadweb.org"
 #  \ingroup APLAN
 #  \brief FreeCAD APLAN compound object
 
+import FreeCAD
+if FreeCAD.GuiUp:
+    from aplanviewprovider.view_compound import ViewProviderCompound
+from . import base_aplanpythonobject
 from aplantools import aplanutils
 try:
-    from . import base_aplanpythonobject
-    from aplantools import aplanutils
-    from aplanviewprovider.view_compound import ViewProviderCompound
-    import FreeCAD
     import typing
 except ImportError as ie:
-    aplanutils.missingPythonModule(str(ie.name or ""))
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 def create(doc, analysis, components: typing.List, name="Compound"):
