@@ -61,7 +61,7 @@ Py::List AplanAnalysisPy::getComponents(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -79,7 +79,7 @@ Py::List AplanAnalysisPy::getCompoundGroupObjects(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -97,7 +97,7 @@ Py::List AplanAnalysisPy::getConnectionDetectorObjects(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -115,7 +115,7 @@ Py::List AplanAnalysisPy::getConstraintGroupObjects(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -133,7 +133,7 @@ Py::List AplanAnalysisPy::getObstructionDetectorObjects(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -151,7 +151,7 @@ Py::List AplanAnalysisPy::getPartFilterObjects(void) const
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjects;
 }
@@ -193,7 +193,7 @@ PyObject *AplanAnalysisPy::getUniqueObjectLabel(PyObject *args)
     }
     catch (const std::exception &e)
     {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, e.what());
     }
     return pyObjectName;
 }
