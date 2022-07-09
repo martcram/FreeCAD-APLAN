@@ -78,3 +78,45 @@ class ConnectionGraph(nx.Graph):
             aplanutils.displayAplanError(
                 "Connection graph cannot be created from JSON data", repr(e))
         return self
+
+
+class ObstructionGraph(nx.DiGraph):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def exportToFile(self, fileLoc: str) -> None:
+        try:
+            jsonData: typing.Dict = {}
+            jsonData["nodes"] = [{"name": node} for node in self.nodes()]
+            jsonData["links"] = [{"source": str(edge[0]),
+                                  "target": str(edge[1])} for edge in self.edges()]
+            with open(fileLoc, 'w') as file:
+                json.dump(jsonData, file)
+        except Exception as e:
+            aplanutils.displayAplanError(
+                "Obstruction graph cannot be exported to '{}'.".format(fileLoc), repr(e))
+
+    def importFromFile(self, fileLoc: str) -> ObstructionGraph:
+        try:
+            jsonData: typing.Dict = {}
+            with open(fileLoc, 'r') as file:
+                jsonData = json.load(file)
+            edges: typing.List[typing.Tuple] = [(link["source"], link["target"])
+                                                for link in jsonData["links"]]
+            self.clear()
+            self.add_edges_from(edges)
+        except Exception as e:
+            aplanutils.displayAplanError(
+                "Obstruction graph cannot be imported from '{}'.".format(fileLoc), repr(e))
+        return self
+
+    def createFromJSON(self, jsonData: typing.Dict) -> ObstructionGraph:
+        try:
+            edges: typing.List[typing.Tuple] = [(link["source"], link["target"])
+                                                for link in jsonData["links"]]
+            self.clear()
+            self.add_edges_from(edges)
+        except Exception as e:
+            aplanutils.displayAplanError(
+                "Obstruction graph cannot be created from JSON data", repr(e))
+        return self
