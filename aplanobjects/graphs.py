@@ -28,14 +28,12 @@ __title__ = "FreeCAD APLAN's graph classes"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-
-from aplantools import aplanutils
 try:
     import json
     import networkx as nx
     import typing
 except ImportError as ie:
-    aplanutils.missingPythonModule(str(ie.name or ""))
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 class ConnectionGraph(nx.Graph):
@@ -51,8 +49,7 @@ class ConnectionGraph(nx.Graph):
             with open(fileLoc, 'w') as file:
                 json.dump(jsonData, file)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Connection graph cannot be exported to '{}'.".format(fileLoc), repr(e))
+            print("Connection graph cannot be exported to '{}': {}.".format(fileLoc, repr(e)))
 
     def importFromFile(self, fileLoc: str) -> ConnectionGraph:
         try:
@@ -64,8 +61,7 @@ class ConnectionGraph(nx.Graph):
             self.clear()
             self.add_edges_from(edges)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Connection graph cannot be imported from '{}'.".format(fileLoc), repr(e))
+            print("Connection graph cannot be imported to '{}': {}.".format(fileLoc, repr(e)))
         return self
 
     def createFromJSON(self, jsonData: typing.Dict) -> ConnectionGraph:
@@ -75,8 +71,7 @@ class ConnectionGraph(nx.Graph):
             self.clear()
             self.add_edges_from(edges)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Connection graph cannot be created from JSON data", repr(e))
+            print("Connection graph cannot be created from JSON data: {}".format(repr(e)))
         return self
 
 
@@ -93,8 +88,7 @@ class ObstructionGraph(nx.DiGraph):
             with open(fileLoc, 'w') as file:
                 json.dump(jsonData, file)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Obstruction graph cannot be exported to '{}'.".format(fileLoc), repr(e))
+            print("Obstruction graph cannot be exported to '{}': {}.".format(fileLoc, repr(e)))
 
     def importFromFile(self, fileLoc: str) -> ObstructionGraph:
         try:
@@ -106,8 +100,7 @@ class ObstructionGraph(nx.DiGraph):
             self.clear()
             self.add_edges_from(edges)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Obstruction graph cannot be imported from '{}'.".format(fileLoc), repr(e))
+            print("Obstruction graph cannot be imported to '{}': {}.".format(fileLoc, repr(e)))
         return self
 
     def createFromJSON(self, jsonData: typing.Dict) -> ObstructionGraph:
@@ -117,6 +110,5 @@ class ObstructionGraph(nx.DiGraph):
             self.clear()
             self.add_edges_from(edges)
         except Exception as e:
-            aplanutils.displayAplanError(
-                "Obstruction graph cannot be created from JSON data", repr(e))
+            print("Obstruction graph cannot be created from JSON data: {}".format(repr(e)))
         return self
