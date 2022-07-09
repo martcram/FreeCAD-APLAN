@@ -17,12 +17,6 @@ set(AplanGui_LIBS
     PartGui
 )
 
-set(AplanGui_MOC_HDRS
-    TaskAplanAnalysis.hpp
-)
-fc_wrap_cpp(AplanGui_MOC_SRCS ${AplanGui_MOC_HDRS})
-SOURCE_GROUP("Moc" FILES ${AplanGui_MOC_SRCS})
-
 SET(AplanGui_UIC_SRCS
     TaskAplanAnalysis.ui
 )
