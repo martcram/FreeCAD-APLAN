@@ -85,7 +85,7 @@ namespace AplanGui
                 App::DocumentObject *obj = static_cast<App::DocumentObjectPy *>(object)->getDocumentObjectPtr();
                 if (!obj || !obj->getTypeId().isDerivedFrom(Aplan::AplanAnalysis::getClassTypeId()))
                 {
-                    throw Py::Exception(Base::BaseExceptionFreeCADError, "Active Analysis object have to be of type Aplan::AplanAnalysis!");
+                    throw Py::Exception(PyExc_TypeError, "Active Analysis object have to be of type Aplan::AplanAnalysis!");
                 }
 
                 // get the gui document of the Analysis Item

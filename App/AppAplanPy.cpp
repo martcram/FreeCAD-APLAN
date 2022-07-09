@@ -103,7 +103,7 @@ namespace Aplan
             double distance{0.0};
             if (!PyArg_ParseTuple(args.ptr(), "sd", &label, &distance))
             {
-                throw Py::Exception(Base::BaseExceptionFreeCADError, "pointSampleShape: 1st parameter must be a string, 2nd parameter must be a float.");
+                throw Py::Exception(PyExc_TypeError, "pointSampleShape: 1st parameter must be a string, 2nd parameter must be a float.");
             }
 
             std::vector<Base::Vector3d> vertices{};
