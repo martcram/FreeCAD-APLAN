@@ -27,6 +27,7 @@
 
 #include <App/DocumentObject.h>
 #include <App/FeaturePython.h>
+#include <App/PropertyStandard.h>
 
 namespace Aplan
 {
@@ -37,6 +38,9 @@ namespace Aplan
     public:
         GeomConstraints();
         virtual ~GeomConstraints();
+
+        // Location of the JSON file representing the geometrical constraints
+        App::PropertyString FileLocation;
 
         // Returns the type name of the ViewProvider
         const char *getViewProviderName(void) const

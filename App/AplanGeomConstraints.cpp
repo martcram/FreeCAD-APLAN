@@ -28,6 +28,7 @@
 #include <App/DocumentObjectPy.h>
 #include <App/FeaturePython.h>
 #include <App/FeaturePythonPyImp.h>
+#include <App/PropertyContainer.h>
 #include <Mod/Aplan/App/AplanGeomConstraints.hpp>
 
 using namespace Aplan;
@@ -36,6 +37,8 @@ PROPERTY_SOURCE(Aplan::GeomConstraints, App::DocumentObject)
 
 GeomConstraints::GeomConstraints()
 {
+    ADD_PROPERTY_TYPE(FileLocation, (0), "Geometrical Constraints", (App::PropertyType)(App::Prop_None),
+                      "Location of the JSON file representing the topological constraints");
 }
 
 GeomConstraints::~GeomConstraints()
