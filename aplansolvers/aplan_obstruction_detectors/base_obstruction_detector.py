@@ -54,11 +54,16 @@ class IObstructionDetector(metaclass=abc.ABCMeta):
         return None
 
 
-class IMotionDirection:
-    pass
+class IMotionDirection(enum.IntEnum):
+    def __repr__(self) -> str:
+        return "{}.{}".format(self.__class__.__name__, self.name)
 
 
-class CartesianMotionDirection(IMotionDirection, enum.IntEnum):
+class UndefMotionDirection(IMotionDirection):
+    UNDEF = 0
+
+
+class CartesianMotionDirection(IMotionDirection):
     NEG_X = -1
     POS_X = 1
     NEG_Y = -2
