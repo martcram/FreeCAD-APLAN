@@ -26,7 +26,9 @@
 
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
+#include <App/FeaturePython.h>
 #include <App/FeaturePythonPyImp.h>
+#include <App/PropertyContainer.h>
 #include <Mod/Aplan/App/AplanTopoConstraints.hpp>
 
 using namespace Aplan;
