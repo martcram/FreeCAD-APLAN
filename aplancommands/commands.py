@@ -104,6 +104,27 @@ class _ConstraintsPurge(CommandManager):
         aplanutils.purgeConstraints(AplanGui.getActiveAnalysis())
 
 
+class _GeomConstraints(CommandManager):
+    "Creates a geometrical constraints object"
+
+    def __init__(self):
+        super(_GeomConstraints, self).__init__()
+        self.menutext = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_GeomConstraints",
+            "Geometrical constraints"
+        )
+        self.tooltip = Qt.QT_TRANSLATE_NOOP(
+            "APLAN_GeomConstraints",
+            "Creates a geometrical constraints object"
+        )
+        self.is_active = "with_analysis"
+        self.do_activated = "add_obj_on_gui_set_edit"
+    
+    def Activated(self) -> None:
+        obj = ObjectsAplan.makeGeomConstraints(AplanGui.getActiveAnalysis())
+        FreeCAD.ActiveDocument.recompute()
+
+
 class _ObstructionDetectorOCCT(CommandManager):
     "..."
 
@@ -220,6 +241,7 @@ class _TopoConstraintsInspect(CommandManager):
 FreeCADGui.addCommand("APLAN_CompoundsPurge",              _CompoundsPurge())
 FreeCADGui.addCommand("APLAN_ConnectionDetectorSwellOCCT", _ConnectionDetectorSwellOCCT())
 FreeCADGui.addCommand("APLAN_ConstraintsPurge",            _ConstraintsPurge())
+FreeCADGui.addCommand("APLAN_GeomConstraints",             _GeomConstraints())
 FreeCADGui.addCommand("APLAN_ObstructionDetectorOCCT",     _ObstructionDetectorOCCT())
 FreeCADGui.addCommand("APLAN_PartFilter",                  _PartFilter())
 FreeCADGui.addCommand("APLAN_ToggleTransparency",          _ToggleTransparency())

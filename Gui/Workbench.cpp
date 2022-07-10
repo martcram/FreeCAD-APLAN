@@ -105,6 +105,7 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     Gui::ToolBarItem *obstructions = new Gui::ToolBarItem(root);
     obstructions->setCommand("Obstructions");
     *obstructions
+        << "APLAN_GeomConstraints"
         << "APLAN_ObstructionDetectorOCCT";
 
     Gui::ToolBarItem* results = new Gui::ToolBarItem(root);

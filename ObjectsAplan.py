@@ -31,6 +31,7 @@ __url__ = "https://www.freecadweb.org"
 #  @{
 
 import FreeCAD
+from aplansolvers.aplan_obstruction_detectors import base_obstruction_detector as base
 try:
     import typing
 except ImportError as ie:
@@ -86,7 +87,7 @@ def makeConnectionDetectorSwellOCCT(doc, name="ConnectDetector"):
 
 
 def makeTopoConstraints(analysis, constraints: typing.Set[typing.Tuple[str, str]] = set(), name="TopoConstraints"):
-    """makeTopoConstraints(analysis, constraints, [name]):
+    """makeTopoConstraints(analysis, [constraints], [name]):
     makes an APLAN TopoConstraints object"""
     import aplanobjects.topo_constraints
     obj = aplanobjects.topo_constraints.create(
@@ -100,4 +101,14 @@ def makeObstructionDetectorOCCT(doc, name="ObstructDetector"):
     ..."""
     from aplansolvers.aplan_obstruction_detectors import occt
     obj = occt.create(doc, name)
+    return obj
+
+
+def makeGeomConstraints(analysis, motionDirection: base.IMotionDirection = base.UndefMotionDirection.UNDEF, 
+                        constraints: typing.Set[typing.Tuple[str, str]] = set(), name="GeomConstraints"):
+    """makeGeomConstraints(analysis, [motionDirection], [constraints], [name]):
+    makes an APLAN GeomConstraints object"""
+    import aplanobjects.geom_constraints
+    obj = aplanobjects.geom_constraints.create(
+        FreeCAD.ActiveDocument, analysis, motionDirection, constraints, name)
     return obj
