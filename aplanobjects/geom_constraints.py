@@ -34,8 +34,9 @@ import FreeCAD
 if FreeCAD.GuiUp:
     from aplanviewprovider.view_geom_constraints import VPGeomConstraints
 from . import base_aplanpythonobject
-from aplantools import aplanutils
+from aplanobjects import graphs
 from aplansolvers.aplan_obstruction_detectors import base_obstruction_detector as base
+from aplantools import aplanutils
 try:
     import typing
 except ImportError as ie:
@@ -56,3 +57,22 @@ class GeomConstraints(base_aplanpythonobject.BaseAplanPythonObject):
 
     def __init__(self, obj, analysis, motionDirection: base.IMotionDirection, constraints: typing.Set[typing.Tuple[str, str]]) -> None:
         super(GeomConstraints, self).__init__(obj)
+        if not hasattr(obj, "MotionDirection"):
+            obj.addProperty(
+                "App::PropertyEnumeration",
+                "MotionDirection",
+                "Geometrical Constraints",
+                "Disassembly direction in which the geometrical constraints hold"
+            )
+            obj.MotionDirection = [repr(item) for subclass in base.IMotionDirection.__subclasses__() for item in subclass]
+        obj.MotionDirection = repr(motionDirection)
+    
+        if hasattr(obj, "FileLocation"):
+            obj.FileLocation = "{}/{}_{}.json".format(analysis.WorkingDir, obj.Label, obj.MotionDirection.replace('.', '-'))
+
+            obstrGraph: graphs.ObstructionGraph = graphs.ObstructionGraph()
+            if len(constraints) == 0:
+                obstrGraph.add_nodes_from([component.Label for component in analysis.Components])
+            else:
+                obstrGraph.add_edges_from(constraints)
+            obstrGraph.exportToFile(obj.FileLocation)
