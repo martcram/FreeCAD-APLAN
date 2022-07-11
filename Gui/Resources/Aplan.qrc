@@ -2,6 +2,7 @@
     <qresource>
         <!-- gui command icons -->
         <file>icons/APLAN_Analysis.svg</file>
+        <file>icons/APLAN_Compound.svg</file>
 
         <!-- task panels -->
         <file>ui/aplan_connection_detectors/SwellOCCT.ui</file>
