@@ -37,7 +37,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderCompound, PartGui::ViewProviderCompound)
 ViewProviderCompound::ViewProviderCompound()
     : PartGui::ViewProviderCompound{}
 {
-    // sPixmap = "APLAN_Compound.svg";
+    sPixmap = "APLAN_Compound.svg";
 }
 
 ViewProviderCompound::~ViewProviderCompound()
