@@ -33,6 +33,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderCompoundGroup, Gui::ViewProviderDocumentOb
 
 ViewProviderCompoundGroup::ViewProviderCompoundGroup()
 {
+    sPixmap = "APLAN_CompoundGroup.svg";
 }
 
 ViewProviderCompoundGroup::~ViewProviderCompoundGroup()
