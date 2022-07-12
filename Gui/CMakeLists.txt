@@ -102,6 +102,7 @@ SET(AplanGuiPythonUI_SRCS
     Resources/ui/aplan_connection_detectors/SwellOCCT.ui
     Resources/ui/aplan_obstruction_detectors/OCCT.ui
     Resources/ui/ExcludeParts.ui
+    Resources/ui/GeomConstraints.ui
     Resources/ui/GroupParts.ui
     Resources/ui/TopoConstraints.ui
 )

@@ -84,6 +84,7 @@ INSTALL(FILES ${AplanTools_SRCS} DESTINATION Mod/Aplan/aplantools)
 
 SET(AplanGuiTaskPanels_SRCS
     aplantaskpanels/__init__.py
+    aplantaskpanels/task_geom_constraints.py
     aplantaskpanels/task_part_filter.py
     aplantaskpanels/task_topo_constraints.py
 )

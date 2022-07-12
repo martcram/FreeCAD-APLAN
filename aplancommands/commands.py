@@ -122,6 +122,8 @@ class _GeomConstraints(CommandManager):
     
     def Activated(self) -> None:
         obj = ObjectsAplan.makeGeomConstraints(AplanGui.getActiveAnalysis())
+        FreeCADGui.doCommand(
+            "FreeCADGui.ActiveDocument.setEdit('{}')".format(obj.Name))
         FreeCAD.ActiveDocument.recompute()
 
 
