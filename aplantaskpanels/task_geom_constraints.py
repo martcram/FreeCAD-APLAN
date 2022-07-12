@@ -33,6 +33,7 @@ __url__ = "https://www.freecadweb.org"
 import FreeCAD
 import FreeCADGui
 from aplantools import aplanutils
+from aplanwebapp import browser
 try:
     from PySide2 import QtCore, QtWidgets
     import typing
@@ -97,6 +98,7 @@ class _TaskPanel:
         return True
     
     def __exit(self) -> None:
+        browser.hide()
         self._obj.ViewObject.Document.resetEdit()
         self._obj.Document.recompute()
 
