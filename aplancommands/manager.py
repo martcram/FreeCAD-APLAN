@@ -115,8 +115,14 @@ class CommandManager(object):
         return False
 
     def editObjectInBrowser(self, obj) -> None:
-        url: str = "http://0.0.0.0:8080/aplan/connection_graph?fileLoc={}".format(
-            obj.FileLocation)
+        graphType: str = ""
+        if obj.isDerivedFrom("Aplan::TopoConstraints"):
+            graphType = "connection_graph"
+        elif obj.isDerivedFrom("Aplan::GeomConstraints"):
+            graphType = "obstruction_graph"
+
+        url: str = "http://0.0.0.0:8080/aplan/{}?fileLoc={}".format(
+            graphType, obj.FileLocation)
         browser.getBrowser().setUrl(url)
         browser.show()
 
