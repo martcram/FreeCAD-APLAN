@@ -31,6 +31,7 @@ import FreeCADGui
 import aplansolvers.aplan_obstruction_detectors.base_obstruction_detector as base
 import aplansolvers.aplan_obstruction_detectors.base_view_obstruction_detector as baseView
 import aplansolvers.aplan_obstruction_detectors.occt as occt
+import ObjectsAplan
 from aplantools import aplanutils
 try:
     import itertools
@@ -227,6 +228,17 @@ class _TaskPanel(baseView.ITaskPanel):
     def __processOutput(self, output: typing.Dict) -> None:
         self._computationTime = round(output.get("time", 0.0), 3)
         self.form.l_time.setText("{} s".format(self._computationTime))
+        results: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = output.get("constraints", {})
+        
+        motionDirection: base.CartesianMotionDirection
+        for motionDirection in self._motionDirections:
+            geomConstraints: typing.Set[typing.Tuple[str, str]] = set()
+            if motionDirection in results.keys():
+                geomConstraints = results[motionDirection]
+            else:
+                oppositeMotionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection(abs(motionDirection.value))
+                geomConstraints = {constraint[::-1] for constraint in results[oppositeMotionDirection]}
+            ObjectsAplan.makeGeomConstraints(self._analysis, motionDirection, geomConstraints, "GeomConstraints_{}".format(motionDirection.name))
 
     def __readCheckBoxState(self, state: int, objectName: str) -> None:
         motionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection[objectName.upper()]
