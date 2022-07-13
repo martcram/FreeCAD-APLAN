@@ -35,6 +35,7 @@ import FreeCADGui
 from aplantools import aplanutils
 from aplanwebapp import api, browser
 try:
+    import json
     from PySide2 import QtCore, QtWidgets
     import typing
 except ImportError as ie:
@@ -71,6 +72,12 @@ class _TaskPanel:
         self._excludedParts: typing.Dict = {excludedPart.Label: excludedPart for partFilter in self._analysis.PartFilterObjects 
                                             for excludedPart in partFilter.ExcludedParts}
 
+        self._prevObstructions: typing.Set[typing.Tuple] = set()
+
+        webServerThread: QtCore.QTimer = QtCore.QTimer(self.form)
+        webServerThread.timeout.connect(self.__callWebServer)
+        webServerThread.start(100)
+
         index: int
         motionDirection: str
         for index, motionDirection in enumerate(aplanutils.getPropertyEnumerationValues(self._obj, "MotionDirection")):
@@ -90,6 +97,7 @@ class _TaskPanel:
         return button_value
 
     def accept(self) -> bool:
+        self.__saveObstructionGraph(self._obj.FileLocation)
         self.__writeProperties()
         self.__exit()
         return True
@@ -98,8 +106,18 @@ class _TaskPanel:
         self.__exit()
         return True
     
+    def __callWebServer(self) -> None:
+        # Check if the set of obstructions has been changed
+        obstructions: typing.Set[typing.Tuple] = api.getObstructionGraphEdges()
+        if obstructions and self._prevObstructions != obstructions:
+            self.__resetConstraintsTable(obstructions)
+            self.form.l_constraints.setText(str(len(obstructions)))
+            self._prevObstructions = obstructions
+
     def __exit(self) -> None:
         browser.hide()
+        api.clearCacheObstructionGraph()
+
         self._obj.ViewObject.Document.resetEdit()
         self._obj.Document.recompute()
 
@@ -109,6 +127,10 @@ class _TaskPanel:
         for index, connection in enumerate(obstructions):
             self.form.tw_constraints_list.setItem(index, 0, QtWidgets.QTableWidgetItem(connection[0]))
             self.form.tw_constraints_list.setItem(index, 1, QtWidgets.QTableWidgetItem(connection[1]))
+
+    def __saveObstructionGraph(self, fileLocation: str) -> None:
+        with open(fileLocation, 'w') as file:
+            json.dump(api.getObstructionGraph(), file)
 
     def __switchMotionDirection(self, motionDirection: str) -> None:
         self._motionDirection = motionDirection
