@@ -103,6 +103,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self._noParts: int = len(disjointPartLabels) + len(excludedPartLabels) + len(groupedPartLabels)
         self._componentsDict: typing.Dict = {**self._disjointPartsDict, **self._compoundsDict}
         self._computationTime: float = 0.0
+        self._initPlacementsDict: typing.Dict = {componentLabel: component.Placement for componentLabel, component in self._componentsDict.items()}
         #* Refinement properties
         for refinementMethod in occt.RefinementMethod:
             if self.obj.RefinementMethod == refinementMethod.value[0]:
@@ -237,7 +238,7 @@ class _TaskPanel(baseView.ITaskPanel):
                 geomConstraints = results[motionDirection]
             else:
                 oppositeMotionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection(abs(motionDirection.value))
-                geomConstraints = {constraint[::-1] for constraint in results[oppositeMotionDirection]}
+                geomConstraints = {constraint[::-1] for constraint in results.get(oppositeMotionDirection, set())}
             ObjectsAplan.makeGeomConstraints(self._analysis, motionDirection, geomConstraints, "GeomConstraints_{}".format(motionDirection.name))
 
     def __readCheckBoxState(self, state: int, objectName: str) -> None:
@@ -267,6 +268,10 @@ class _TaskPanel(baseView.ITaskPanel):
         self.form.te_output.setTextColor(baseView.MessageType(progress["type"]).value)
         self.form.te_output.append(progress["msg"])
         self.form.te_output.setTextColor(baseView.MessageType.INFO.value)
+
+    def __resetInitialPlacements(self) -> None:
+        for component in self._componentsDict.values():
+            component.Placement = self._initPlacementsDict[component.Label]
 
     def __run(self) -> None:
         if self._solverThread is None or not self._solverThread.isRunning():
@@ -355,6 +360,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self.form.btn_run.setText("Run")
         self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_RUN))
         self._solverThread = None
+        self.__resetInitialPlacements()
 
     def __threadStarted(self) -> None:
         self.form.btn_run.setText("Abort")
