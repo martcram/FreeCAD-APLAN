@@ -43,7 +43,7 @@ except ImportError as ie:
     print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
-def create(doc, analysis, motionDirection: base.IMotionDirection, constraints: typing.Set[typing.Tuple[str, str]], name="GeomConstraints"):
+def create(doc, analysis, motionDirection: base.IMotionDirection, constraints: typing.Set[typing.Tuple[str, str]], name):
     obj = doc.addObject(GeomConstraints.BaseType, name)
     aplanutils.getConstraintGroup(analysis).addObject(obj)
     GeomConstraints(obj, analysis, motionDirection, constraints)
