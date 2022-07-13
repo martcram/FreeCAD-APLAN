@@ -26,16 +26,14 @@ __title__ = "FreeCAD APLAN Flask web app"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
-
-from aplantools import aplanutils
+import FreeCAD
 try:
     import flask
     import flask_caching
-    import FreeCAD
     import json
     import typing
 except ImportError as ie:
-    aplanutils.missingPythonModule(str(ie.name or ""))
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
 
 staticDir:    typing.Final[str] = FreeCAD.getHomePath() + "Mod/Aplan/aplanwebapp/static/"
@@ -52,6 +50,35 @@ app.config.from_mapping(config)
 cache = flask_caching.Cache(app)
 
 
+# ********************* General *********************
+@app.errorhandler(404)
+def error_404(error: Exception) -> flask.typing.ResponseReturnValue:
+    return flask.render_template("error_404.html"), 404
+
+
+@app.errorhandler(500)
+def error_500(error: Exception) -> flask.typing.ResponseReturnValue:
+    return flask.render_template("error_500.html"), 500
+
+
+@app.route("/aplan/config_params")
+def getConfigParams():
+    with open(staticDir + "json/config_params.json", "r") as read_file:
+        message = json.load(read_file)
+    return flask.jsonify(message)
+
+
+@app.route("/aplan/animations", methods=["GET", "POST"])
+def toggleAnimations():
+    if flask.request.method == "GET":
+        return flask.jsonify(cache.get("animations"))
+    elif flask.request.method == "POST":
+        args: typing.Dict[str, str] = flask.request.args.to_dict()
+        cache.set("animations", {"enabled": args["enable"]})
+        return "Success", 200
+
+
+# ********************* Connection graph *********************
 connectionGraphCachedParams = [
     "animations",
     "cg_file_location",
@@ -84,23 +111,6 @@ def connectionGraphJS():
         return "Success", 200
 
 
-@app.errorhandler(404)
-def error_404(error: Exception) -> flask.typing.ResponseReturnValue:
-    return flask.render_template("error_404.html"), 404
-
-
-@app.errorhandler(500)
-def error_500(error: Exception) -> flask.typing.ResponseReturnValue:
-    return flask.render_template("error_500.html"), 500
-
-
-@app.route("/aplan/config_params")
-def getConfigParams():
-    with open(staticDir + "json/config_params.json", "r") as read_file:
-        message = json.load(read_file)
-    return flask.jsonify(message)
-
-
 @app.route("/aplan/connection_graph/json")
 def getConnectionGraphJSON():
     return flask.jsonify(cache.get("cg_graph"))
@@ -122,11 +132,55 @@ def renderConnectionGraph():
     return flask.render_template("connection_graph.html", fileLocation=cache.get("cg_file_location"))
 
 
-@app.route("/aplan/animations", methods=["GET", "POST"])
-def toggleAnimations():
+# ********************* Obstruction graph *********************
+obstructionGraphCachedParams = [
+    "animations",
+    "og_file_location",
+    "og_graph",
+    "og_selected_obstructions"
+]
+
+
+@app.route("/aplan/obstruction_graph/clear_cache", methods=["POST"])
+def clearCacheObstructionGraph():
+    param: str
+    for param in obstructionGraphCachedParams:
+        cache.delete(param)
+    return "Success", 200
+
+
+@app.route("/aplan/obstruction_graph/js", methods=["GET", "POST"])
+def obstructionGraphJS():
     if flask.request.method == "GET":
-        return flask.jsonify(cache.get("animations"))
+        try:
+            args: typing.Dict[str, str] = flask.request.args.to_dict()
+            with open(args.get("fileLoc", ""), "r") as read_file:
+                data = json.load(read_file)
+            cache.set("og_graph", data)
+            return flask.jsonify(data)
+        except Exception as e:
+            return flask.jsonify({"nodes": [], "links": []})
     elif flask.request.method == "POST":
-        args: typing.Dict[str, str] = flask.request.args.to_dict()
-        cache.set("animations", {"enabled": args["enable"]})
+        cache.set("og_graph", flask.request.get_json())
         return "Success", 200
+
+
+@app.route("/aplan/obstruction_graph/json")
+def getObstructionGraphJSON():
+    return flask.jsonify(cache.get("og_graph"))
+
+
+@app.route("/aplan/obstruction_graph/selected_obstructions", methods=["GET", "POST"])
+def getSelectedObstructions():
+    if flask.request.method == "GET":
+        return flask.jsonify(cache.get("og_selected_obstructions"))
+    elif flask.request.method == "POST":
+        cache.set("og_selected_obstructions", flask.request.get_json())
+        return "Success", 200
+
+
+@app.route("/aplan/obstruction_graph")
+def renderObstructionGraph():
+    args: typing.Dict[str, str] = flask.request.args.to_dict()
+    cache.set("og_file_location", args.get("fileLoc", ""))
+    return flask.render_template("obstruction_graph.html", fileLocation=cache.get("og_file_location"))
