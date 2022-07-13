@@ -104,12 +104,14 @@ SET(AplanGuiWebApp_SRCS
     # JS
     aplanwebapp/static/js/connection_graph.js
     aplanwebapp/static/js/error.js
+    aplanwebapp/static/js/obstruction_graph.js
     # JSON
     aplanwebapp/static/json/config_params.json
     # HTML
     aplanwebapp/templates/connection_graph.html
     aplanwebapp/templates/error_404.html
     aplanwebapp/templates/error_500.html
+    aplanwebapp/templates/obstruction_graph.html
     # Python
     aplanwebapp/__init__.py
     aplanwebapp/api.py
