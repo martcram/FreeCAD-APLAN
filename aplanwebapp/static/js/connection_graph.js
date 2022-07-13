@@ -197,7 +197,7 @@ class ConnectionGraph {
                     highlightedNodes.push(node.name); // also highlight the selected node
                     let highlightedLinks = adjacentLinksDict[node.name];
 
-                    fetch("/aplan/connection_graph/animations")
+                    fetch("/aplan/animations")
                         .then((response) => {
                             return response.json();
                         })

@@ -53,7 +53,7 @@ cache = flask_caching.Cache(app)
 
 
 connectionGraphCachedParams = [
-    "cg_animations",
+    "animations",
     "cg_file_location",
     "cg_graph",
     "cg_selected_connections"
@@ -122,11 +122,11 @@ def renderConnectionGraph():
     return flask.render_template("connection_graph.html", fileLocation=cache.get("cg_file_location"))
 
 
-@app.route("/aplan/connection_graph/animations", methods=["GET", "POST"])
+@app.route("/aplan/animations", methods=["GET", "POST"])
 def toggleAnimations():
     if flask.request.method == "GET":
-        return flask.jsonify(cache.get("cg_animations"))
+        return flask.jsonify(cache.get("animations"))
     elif flask.request.method == "POST":
         args: typing.Dict[str, str] = flask.request.args.to_dict()
-        cache.set("cg_animations", {"enabled": args["enable"]})
+        cache.set("animations", {"enabled": args["enable"]})
         return "Success", 200

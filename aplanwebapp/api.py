@@ -61,4 +61,4 @@ def getSelectedConnections() -> typing.Dict:
 
 def toggleAnimations(enable: bool) -> None:
     requests.post(
-        "http://0.0.0.0:8080/aplan/connection_graph/animations?enable={}".format(str(enable)))
+        "http://0.0.0.0:8080/aplan/animations?enable={}".format(str(enable)))
