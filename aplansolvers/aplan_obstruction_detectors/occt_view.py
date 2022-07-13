@@ -218,6 +218,11 @@ class _TaskPanel(baseView.ITaskPanel):
         return button_value
 
     def reject(self) -> bool:
+        if self._solverThread is not None and self._solverThread.isRunning():
+            QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), "Running solver", 
+            "The solver is still running! Please terminate it before continuing.")
+            return False
+
         self.__writeProperties()
         self.obj.ViewObject.Document.resetEdit()
         self.obj.Document.recompute()
