@@ -33,7 +33,7 @@ __url__ = "https://www.freecadweb.org"
 import FreeCAD
 import FreeCADGui
 from aplantools import aplanutils
-from aplanwebapp import browser
+from aplanwebapp import api, browser
 try:
     from PySide2 import QtCore, QtWidgets
     import typing
@@ -50,6 +50,7 @@ class _TaskPanel:
         self._obj = geomConstraintsObject
         self._analysis = aplanutils.getActiveAnalysis()
         self._animations: bool = True
+        api.toggleAnimations(self._animations)
         self._motionDirection: str = self._obj.MotionDirection
 
         self.form = FreeCADGui.PySideUic.loadUi(
@@ -117,6 +118,7 @@ class _TaskPanel:
             self._animations = True
         else:
             self._animations = False
+        api.toggleAnimations(self._animations)
     
     def __writeProperties(self) -> None:
         self._obj.MotionDirection = self._motionDirection
