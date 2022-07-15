@@ -28,7 +28,6 @@ __url__ = "https://www.freecadweb.org"
 
 import FreeCAD
 import ObjectsAplan
-
 if FreeCAD.GuiUp:
     import FreeCADGui
     import AplanGui
@@ -36,6 +35,11 @@ if FreeCAD.GuiUp:
         from PySide2 import QtWidgets
     except ImportError as ie:
         print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
+try:
+    import typing
+    import xml.etree.ElementTree as ET
+except ImportError as ie:
+    print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or ""))) 
 
 
 # Source: src/Mod/Fem/femtools/femutils.py
@@ -121,6 +125,26 @@ def getConstraintGroup(analysis): # if no constraints container is present, one 
         return constraintGroup
     else:
         return groupObjects[0]
+
+
+def getPropertyEnumerationValues(object, propertyName: str) -> typing.List[str]:
+    """Returns the list of possible values of the object's specified `PropertyEnumeration` property.
+
+    :param object: FreeCAD object
+    :type object: `FeaturePython`
+    :param propertyName: name of the enumeration property to retreive the values from
+    :type propertyName: str
+    :return: list of the enumeration property's values
+    :rtype: typing.List[str]
+    """
+    propertiesElement: ET.Element = ET.fromstring(object.Content)
+    propertyElements: typing.List[ET.Element] = propertiesElement.findall("Property")
+    enumValues: typing.List = []
+    if propertyElement := next(iter(p for p in propertyElements 
+                                    if p.get("name") == propertyName and 
+                                       p.get("type") == "App::PropertyEnumeration"), None):
+        enumValues = list(map(lambda e: e.get("value"), propertyElement.iter("Enum")))
+    return enumValues
 
 
 def missingPythonModule(name: str) -> None:

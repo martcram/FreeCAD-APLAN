@@ -31,6 +31,7 @@ import FreeCADGui
 import aplansolvers.aplan_obstruction_detectors.base_obstruction_detector as base
 import aplansolvers.aplan_obstruction_detectors.base_view_obstruction_detector as baseView
 import aplansolvers.aplan_obstruction_detectors.occt as occt
+import ObjectsAplan
 from aplantools import aplanutils
 try:
     import itertools
@@ -102,6 +103,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self._noParts: int = len(disjointPartLabels) + len(excludedPartLabels) + len(groupedPartLabels)
         self._componentsDict: typing.Dict = {**self._disjointPartsDict, **self._compoundsDict}
         self._computationTime: float = 0.0
+        self._initPlacementsDict: typing.Dict = {componentLabel: component.Placement for componentLabel, component in self._componentsDict.items()}
         #* Refinement properties
         for refinementMethod in occt.RefinementMethod:
             if self.obj.RefinementMethod == refinementMethod.value[0]:
@@ -216,6 +218,11 @@ class _TaskPanel(baseView.ITaskPanel):
         return button_value
 
     def reject(self) -> bool:
+        if self._solverThread is not None and self._solverThread.isRunning():
+            QtWidgets.QMessageBox.critical(FreeCADGui.getMainWindow(), "Running solver", 
+            "The solver is still running! Please terminate it before continuing.")
+            return False
+
         self.__writeProperties()
         self.obj.ViewObject.Document.resetEdit()
         self.obj.Document.recompute()
@@ -227,6 +234,17 @@ class _TaskPanel(baseView.ITaskPanel):
     def __processOutput(self, output: typing.Dict) -> None:
         self._computationTime = round(output.get("time", 0.0), 3)
         self.form.l_time.setText("{} s".format(self._computationTime))
+        results: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = output.get("constraints", {})
+        
+        motionDirection: base.CartesianMotionDirection
+        for motionDirection in self._motionDirections:
+            geomConstraints: typing.Set[typing.Tuple[str, str]] = set()
+            if motionDirection in results.keys():
+                geomConstraints = results[motionDirection]
+            else:
+                oppositeMotionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection(abs(motionDirection.value))
+                geomConstraints = {constraint[::-1] for constraint in results.get(oppositeMotionDirection, set())}
+            ObjectsAplan.makeGeomConstraints(self._analysis, motionDirection, geomConstraints, "GeomConstraints_{}".format(motionDirection.name))
 
     def __readCheckBoxState(self, state: int, objectName: str) -> None:
         motionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection[objectName.upper()]
@@ -255,6 +273,10 @@ class _TaskPanel(baseView.ITaskPanel):
         self.form.te_output.setTextColor(baseView.MessageType(progress["type"]).value)
         self.form.te_output.append(progress["msg"])
         self.form.te_output.setTextColor(baseView.MessageType.INFO.value)
+
+    def __resetInitialPlacements(self) -> None:
+        for component in self._componentsDict.values():
+            component.Placement = self._initPlacementsDict[component.Label]
 
     def __run(self) -> None:
         if self._solverThread is None or not self._solverThread.isRunning():
@@ -343,6 +365,7 @@ class _TaskPanel(baseView.ITaskPanel):
         self.form.btn_run.setText("Run")
         self.form.btn_run.setStyleSheet("background-color: {}".format(self._COLOR_RUN))
         self._solverThread = None
+        self.__resetInitialPlacements()
 
     def __threadStarted(self) -> None:
         self.form.btn_run.setText("Abort")
@@ -447,9 +470,11 @@ class Worker(baseView.BaseWorker):
                                         "type": baseView.MessageType.FOCUS})
                     self.progress.emit({"msg": "\t> Done: {:.3f}s".format(geomConstraints[1]),
                                         "type": baseView.MessageType.INFO})
-                computationTime = max(computationTimes)
+                if computationTimes:
+                    computationTime = max(computationTimes)
             else:
-                self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
+                self._solver: occt.OCCTSolver = occt.OCCTSolver(self._componentsDict.values(), 
+                                                                self._motionDirections)
 
                 self.progress.emit({"msg": "====== Refining ======",
                                     "type": baseView.MessageType.INFO})
@@ -457,23 +482,24 @@ class Worker(baseView.BaseWorker):
                                     "type": baseView.MessageType.INFO})
                 time0: float = time.perf_counter()
 
-                componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
+                intervalObstructionsDict: typing.Dict = self._solver.refine(self._refinementMethod, 
+                                                                            self._configParamRefinement)
 
                 time1: float = time.perf_counter()
                 computationTime += time1-time0
 
                 noPotentialObstructions: int = 0
-                motionDirLabel: str
+                motionDirection: base.CartesianMotionDirection
                 targetDict: typing.Dict
-                for motionDirLabel, targetDict in componentsIntervalDict.items():
-                    self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
+                for motionDirection, targetDict in intervalObstructionsDict.items():
+                    self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirection.name),
                                         "type": baseView.MessageType.INFO})
                     targetLabel: str
-                    compIntervalPairs: typing.List
-                    for targetLabel, compIntervalPairs in targetDict.items():
-                        noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
-                        noPotentialObstructions += noIntersectionComponents
-                        self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
+                    intervalObstructionsPairs: typing.List
+                    for targetLabel, intervalObstructionsPairs in targetDict.items():
+                        noObstructionComponents: int = len(set(itertools.chain.from_iterable([pair[1] for pair in intervalObstructionsPairs])))
+                        noPotentialObstructions += noObstructionComponents
+                        self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noObstructionComponents, targetLabel),
                                             "type": baseView.MessageType.INFO})
                 self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
                                             "type": baseView.MessageType.INFO})
@@ -490,11 +516,12 @@ class Worker(baseView.BaseWorker):
                                     "type": baseView.MessageType.INFO})
                 time2: float = time.perf_counter()
 
-                geometricalConstraints = self._solver.solve(self._solverMethod, self._configParamSolver, 
+                geometricalConstraints = self._solver.solve(self._solverMethod, 
+                                                            self._configParamSolver, 
                                                             self._configParamSolverGeneral,
-                                                            componentsIntervalDict=componentsIntervalDict,
-                                                            movePart=self.__movePart,
-                                                            setPartPlacement=self.__setPartPlacement)
+                                                            intervalObstructionsDict=intervalObstructionsDict,
+                                                            fMovePart=self.__movePart,
+                                                            fSetPartPlacement=self.__setPartPlacement)
 
                 time3: float = time.perf_counter()
                 solverTime = time3-time2

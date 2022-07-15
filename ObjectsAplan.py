@@ -105,10 +105,11 @@ def makeObstructionDetectorOCCT(doc, name="ObstructDetector"):
 
 
 def makeGeomConstraints(analysis, motionDirection: base.IMotionDirection = base.UndefMotionDirection.UNDEF, 
-                        constraints: typing.Set[typing.Tuple[str, str]] = set(), name="GeomConstraints"):
+                        constraints: typing.Set[typing.Tuple[str, str]] = set(), name = None):
     """makeGeomConstraints(analysis, [motionDirection], [constraints], [name]):
     makes an APLAN GeomConstraints object"""
     import aplanobjects.geom_constraints
     obj = aplanobjects.geom_constraints.create(
-        FreeCAD.ActiveDocument, analysis, motionDirection, constraints, name)
+        FreeCAD.ActiveDocument, analysis, motionDirection, constraints, 
+        name or "GeomConstraints_{}".format(motionDirection.name))
     return obj

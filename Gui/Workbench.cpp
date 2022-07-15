@@ -111,8 +111,8 @@ Gui::ToolBarItem *Workbench::setupToolBars() const
     Gui::ToolBarItem* results = new Gui::ToolBarItem(root);
     results->setCommand("Results");
     *results
-        << "APLAN_ConstraintsPurge"
-        << "APLAN_TopoConstraintsInspect";
+        << "APLAN_ConstraintsInspect"
+        << "APLAN_ConstraintsPurge";
     
     return root;
 }

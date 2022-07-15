@@ -1,11 +1,11 @@
-class ConnectionGraph {
+class ObstructionGraph {
     constructor(fileLocation) {
         var fileLocation = fileLocation;
     }
 
     run() {
-        d3.json("/aplan/config_params", function (json_data) {
-            const params = json_data;
+        d3.json("/aplan/config_params", function (jsonData) {
+            const params = jsonData;
 
             var width = window.innerWidth,
                 height = window.innerHeight;
@@ -29,6 +29,48 @@ class ConnectionGraph {
                 .append('g')
                 .attr('transform', `translate(${tx}, ${ty}) scale(${scale})`);
 
+            svg.append('defs').append('marker')
+                .attr('id', 'arrowHead')
+                .attr('viewBox', '-0 -5 10 10')
+                .attr('refX', params.arrow_head.default.ref_x)
+                .attr('refY', params.arrow_head.default.ref_y)
+                .attr('orient', 'auto')
+                .attr('markerWidth', params.arrow_head.default.marker_width)
+                .attr('markerHeight', params.arrow_head.default.marker_height)
+                .attr('xoverflow', 'visible')
+                .append('svg:path')
+                .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+                .attr('fill', params.arrow_head.default.fill)
+                .style('stroke', 'none');
+
+            svg.append('defs').append('marker')
+                .attr('id', 'highlightedArrowHead')
+                .attr('viewBox', '-0 -5 10 10')
+                .attr('refX', params.arrow_head.highlight.ref_x)
+                .attr('refY', params.arrow_head.highlight.ref_y)
+                .attr('orient', 'auto')
+                .attr('markerWidth', params.arrow_head.highlight.marker_width)
+                .attr('markerHeight', params.arrow_head.highlight.marker_height)
+                .attr('xoverflow', 'visible')
+                .append('svg:path')
+                .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+                .attr('fill', params.arrow_head.highlight.fill)
+                .style('stroke', 'none');
+
+            svg.append('defs').append('marker')
+                .attr('id', 'selectedArrowHead')
+                .attr('viewBox', '-0 -5 10 10')
+                .attr('refX', params.arrow_head.select.ref_x)
+                .attr('refY', params.arrow_head.select.ref_y)
+                .attr('orient', 'auto')
+                .attr('markerWidth', params.arrow_head.select.marker_width)
+                .attr('markerHeight', params.arrow_head.select.marker_height)
+                .attr('xoverflow', 'visible')
+                .append('svg:path')
+                .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+                .attr('fill', params.arrow_head.select.fill)
+                .style('stroke', 'none');
+
             var force = d3.layout.force()
                 .gravity(params.force_simulation.gravity)
                 .distance(params.force_simulation.distance)
@@ -41,7 +83,7 @@ class ConnectionGraph {
             var nodes = null;
             var links = null;
 
-            d3.json(`/aplan/connection_graph/js?fileLoc=${fileLocation}`, function (json) {
+            d3.json(`/aplan/obstruction_graph/js?fileLoc=${fileLocation}`, function (json) {
                 let data = preprocessData(json);
                 nodes = data.nodes;
                 links = data.links;
@@ -57,6 +99,7 @@ class ConnectionGraph {
                     .data(links)
                     .enter().append("line")
                     .attr("class", "link")
+                    .attr('marker-end', `url(#${params.link.default.marker_end})`)
                     .on("click", clickLink)
                     .on("mouseover", hoverLink)
                     .on("mouseout", function () {
@@ -91,7 +134,7 @@ class ConnectionGraph {
                     .attr("dx", params.label.default.dx)
                     .attr("dy", params.label.default.dy)
                     .text(function (n) { return n.name });
-
+                
                 restart();
             });
 
@@ -114,23 +157,13 @@ class ConnectionGraph {
                         source: nodeNameIdMapping[link.source],
                         target: nodeNameIdMapping[link.target]
                     };
-                    let processedLinkFlipped = {
-                        source: processedLink.target,
-                        target: processedLink.source
-                    };
-                    let linkExists = processedLinks.some(link => (JSON.stringify(processedLink) === JSON.stringify(link)) ||
-                        (JSON.stringify(processedLinkFlipped) === JSON.stringify(link)));
+                    let linkExists = processedLinks.some(link => (JSON.stringify(processedLink) === JSON.stringify(link)));
                     if (!linkExists) {
                         processedLinks.push(processedLink);
                         let adjacentNodesSource = adjacentNodesDict[link.source];
                         if (!adjacentNodesSource.includes(link.target)) {
                             adjacentNodesDict[link.source].push(link.target);
                             adjacentLinksDict[link.source].push(link);
-                        }
-                        let adjacentNodesTarget = adjacentNodesDict[link.target];
-                        if (!adjacentNodesTarget.includes(link.source)) {
-                            adjacentNodesDict[link.target].push(link.source);
-                            adjacentLinksDict[link.target].push(link);
                         }
                     }
                 });
@@ -143,7 +176,7 @@ class ConnectionGraph {
                 };
             }
 
-            // Source: https://gist.github.com/KarolAltamirano/b54c263184be0516a59d6baf7f053f3e
+            // source: https://gist.github.com/KarolAltamirano/b54c263184be0516a59d6baf7f053f3e
             function zoom() {
                 // prevent default event behaviour
                 d3.event.preventDefault();
@@ -180,11 +213,7 @@ class ConnectionGraph {
                 links.splice(i, 1);
 
                 adjacentNodesDict[link.source.name] = adjacentNodesDict[link.source.name].filter(n => (n != link.target.name));
-                adjacentNodesDict[link.target.name] = adjacentNodesDict[link.target.name].filter(n => (n != link.source.name));
-                adjacentLinksDict[link.source.name] = adjacentLinksDict[link.source.name].filter(l => !((l.source === link.source.name && l.target === link.target.name)
-                    || (l.target === link.source.name && l.source === link.target.name)));
-                adjacentLinksDict[link.target.name] = adjacentLinksDict[link.target.name].filter(l => !((l.source === link.source.name && l.target === link.target.name)
-                    || (l.target === link.source.name && l.source === link.target.name)));
+                adjacentLinksDict[link.source.name] = adjacentLinksDict[link.source.name].filter(l => !(l.source === link.source.name && l.target === link.target.name));
 
                 restart();
             }
@@ -192,7 +221,7 @@ class ConnectionGraph {
             function hoverNode(node, _) {
                 if (!nodeSelected) {
                     let highlightedNodes = adjacentNodesDict[node.name].map((x) => x); // shallow copy
-                    postSelectedConnections(node.name, adjacentNodesDict[node.name]);
+                    postSelectedObstructions(node.name, adjacentNodesDict[node.name]);
 
                     highlightedNodes.push(node.name); // also highlight the selected node
                     let highlightedLinks = adjacentLinksDict[node.name];
@@ -223,29 +252,26 @@ class ConnectionGraph {
                     firstSelectedNode = n;
                     selectNodes([firstSelectedNode]);
                     nodeSelected = true;
-                } else if (firstSelectedNode != null && n.name != firstSelectedNode.name && secondSelectedNode == null) {
+                } else if (firstSelectedNode != null && n.id != firstSelectedNode.id && secondSelectedNode == null) {
                     secondSelectedNode = n;
                     let newLink = {
                         source: firstSelectedNode,
                         target: secondSelectedNode
                     };
-                    let linkExists = false;
+                    let linkExist = false;
                     links.forEach(function (l) {
-                        if ((l.source == newLink.source && l.target == newLink.target)
-                            || (l.target == newLink.source && l.source == newLink.target)) {
-                            linkExists = true;
+                        if (l.source == newLink.source && l.target == newLink.target) {
+                            linkExist = true;
                         }
                     });
-                    if (!linkExists) {
+                    if (!linkExist) {
                         links.push(newLink);
                         let newLinkNames = {
                             source: newLink.source.name,
                             target: newLink.target.name
                         };
                         adjacentNodesDict[newLink.source.name].push(newLink.target.name);
-                        adjacentNodesDict[newLink.target.name].push(newLink.source.name);
                         adjacentLinksDict[newLink.source.name].push(newLinkNames);
-                        adjacentLinksDict[newLink.target.name].push(newLinkNames);
                         restart();
                     }
                     selectNodes([firstSelectedNode, secondSelectedNode]);
@@ -260,10 +286,12 @@ class ConnectionGraph {
                 d3.selectAll('.node')
                     .each(function (n) {
                         if (nodeList.includes(n)) {
-                            d3.select(this).select("circle").style("stroke", params.node.select.colour)
+                            d3.select(this).select("circle")
+                                .style("stroke", params.node.select.colour)
                                 .style("stroke-width", params.node.select.stroke_width)
                                 .style("stroke-opacity", params.node.select.stroke_opacity);
-                            d3.select(this).select("text").style("fill", params.label.select.colour)
+                            d3.select(this).select("text")
+                                .style("fill", params.label.select.colour)
                                 .style("font-weight", params.label.select.font_weight)
                                 .style("opacity", params.label.select.opacity);
                         }
@@ -276,8 +304,10 @@ class ConnectionGraph {
                 d3.selectAll('.link')
                     .each(function (l) {
                         if (linkList.includes(l)) {
-                            d3.select(this).style("stroke", params.link.select.colour)
-                                .style("stroke-width", params.link.select.width);
+                            d3.select(this)
+                                .style("stroke", params.link.select.colour)
+                                .style("stroke-width", params.link.select.width)
+                                .attr('marker-end', `url(#${params.link.select.marker_end})`);
                         }
                         let unselectedLinks = links.filter(l => !linkList.includes(l));
                         defaultLinks(unselectedLinks);
@@ -288,17 +318,21 @@ class ConnectionGraph {
                 d3.selectAll('.node')
                     .each(function (node) {
                         if (nodeList.includes(node.name)) {
-                            d3.select(this).select("circle").style("stroke", params.node.highlight.colour)
+                            d3.select(this).select("circle")
+                                .style("stroke", params.node.highlight.colour)
                                 .style("stroke-width", params.node.highlight.stroke_width)
                                 .style("stroke-opacity", params.node.highlight.stroke_opacity);
-                            d3.select(this).select("text").style("fill", params.label.highlight.colour)
+                            d3.select(this).select("text")
+                                .style("fill", params.label.highlight.colour)
                                 .style("font-weight", params.label.highlight.font_weight)
                                 .style("opacity", params.label.highlight.opacity);
                         } else {
-                            d3.select(this).select("circle").style("stroke", params.node.unhighlight.colour)
+                            d3.select(this).select("circle")
+                                .style("stroke", params.node.unhighlight.colour)
                                 .style("stroke-width", params.node.unhighlight.stroke_width)
                                 .style("stroke-opacity", params.node.unhighlight.stroke_opacity);
-                            d3.select(this).select("text").style("fill", params.label.unhighlight.colour)
+                            d3.select(this).select("text")
+                                .style("fill", params.label.unhighlight.colour)
                                 .style("font-weight", params.label.unhighlight.font_weight)
                                 .style("opacity", params.label.unhighlight.opacity);
                         }
@@ -308,16 +342,19 @@ class ConnectionGraph {
             function highlightLinks(linkList) {
                 d3.selectAll('.link')
                     .each(function (link) {
-                        let containsLink = linkList.some(l => l.source === link.source.name && l.target === link.target.name
-                            || l.target === link.source.name && l.source === link.target.name);
+                        let containsLink = linkList.some(l => l.source === link.source.name && l.target === link.target.name);
                         if (containsLink) {
-                            d3.select(this).style("stroke", params.link.highlight.colour)
+                            d3.select(this)
+                                .style("stroke", params.link.highlight.colour)
                                 .style("stroke-width", params.link.highlight.width)
-                                .style("opacity", params.link.highlight.opacity);
+                                .style("opacity", params.link.highlight.opacity)
+                                .attr('marker-end', `url(#${params.link.highlight.marker_end})`);
                         } else {
-                            d3.select(this).style("stroke", params.link.unhighlight.colour)
+                            d3.select(this)
+                                .style("stroke", params.link.unhighlight.colour)
                                 .style("stroke-width", params.link.unhighlight.width)
-                                .style("opacity", params.link.unhighlight.opacity);
+                                .style("opacity", params.link.unhighlight.opacity)
+                                .attr('marker-end', `url(#${params.link.unhighlight.marker_end})`);
                         }
                     });
             }
@@ -326,10 +363,12 @@ class ConnectionGraph {
                 d3.selectAll('.node')
                     .each(function (n) {
                         if (nodeList.includes(n)) {
-                            d3.select(this).select("circle").style("stroke", params.node.default.colour)
+                            d3.select(this).select("circle")
+                                .style("stroke", params.node.default.colour)
                                 .style("stroke-width", params.node.default.stroke_width)
                                 .style("stroke-opacity", params.node.default.stroke_opacity);
-                            d3.select(this).select("text").style("fill", params.label.default.colour)
+                            d3.select(this).select("text")
+                                .style("fill", params.label.default.colour)
                                 .style("font-weight", params.label.default.font_weight)
                                 .style("opacity", params.label.default.opacity);
                         }
@@ -340,9 +379,11 @@ class ConnectionGraph {
                 d3.selectAll('.link')
                     .each(function (l) {
                         if (linkList.includes(l)) {
-                            d3.select(this).style("stroke", params.link.default.colour)
+                            d3.select(this)
+                                .style("stroke", params.link.default.colour)
                                 .style("stroke-width", params.link.default.width)
-                                .style("opacity", params.link.default.opacity);
+                                .style("opacity", params.link.default.opacity)
+                                .attr('marker-end', `url(#${params.link.default.marker_end})`);
                         }
                     });
             }
@@ -358,7 +399,7 @@ class ConnectionGraph {
                     .attr("transform", function (n) { return "translate(" + n.x + "," + n.y + ")"; });
             }
 
-            function postConnectionGraph() {
+            function postObstructionGraph() {
                 let processedGraph = {
                     nodes: [],
                     links: []
@@ -375,15 +416,15 @@ class ConnectionGraph {
                     });
                 });
 
-                fetch("/aplan/connection_graph/js", {
+                fetch("/aplan/obstruction_graph/js", {
                     method: "POST",
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(processedGraph)
                 });
             }
 
-            function postSelectedConnections(source, targets) {
-                fetch("/aplan/connection_graph/selected_connections", {
+            function postSelectedObstructions(source, targets) {
+                fetch("/aplan/obstruction_graph/selected_obstructions", {
                     method: "POST",
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -398,6 +439,7 @@ class ConnectionGraph {
 
                 link.enter().insert("line", ".node")
                     .attr("class", "link")
+                    .attr('marker-end', `url(#${params.link.default.marker_end})`)
                     .on("click", clickLink)
                     .on("mouseover", hoverLink)
                     .on("mouseout", function () {
@@ -407,8 +449,8 @@ class ConnectionGraph {
                 link.exit()
                     .remove();
 
-                postConnectionGraph();
-
+                postObstructionGraph();
+                
                 force.start();
             }
         });

@@ -31,6 +31,8 @@ __url__ = "https://www.freecadweb.org"
 #  \ingroup APLAN
 #  \brief view provider for GeomConstraints object
 
+import FreeCADGui
+from aplantaskpanels import task_geom_constraints
 from aplantools import aplanutils
 try:
     from pivy import coin
@@ -101,9 +103,12 @@ class VPGeomConstraints:
         return []
 
     def setEdit(self, vobj, mode=0):
+        task = task_geom_constraints._TaskPanel(vobj.Object)
+        FreeCADGui.Control.showDialog(task)
         return True
 
     def unsetEdit(self, vobj, mode=0):
+        FreeCADGui.Control.closeDialog()
         return True
 
     def doubleClicked(self, vobj):
