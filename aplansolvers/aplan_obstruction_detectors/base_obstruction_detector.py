@@ -29,6 +29,7 @@ __url__ = "https://www.freecadweb.org"
 try:
     import abc
     import enum
+    import typing
 except ImportError as ie:
     print("Missing dependency! Please install the following Python module: {}".format(str(ie.name or "")))
 
@@ -54,19 +55,31 @@ class IObstructionDetector(metaclass=abc.ABCMeta):
         return None
 
 
-class IMotionDirection(enum.IntEnum):
+class IMotionDirection(enum.Enum):
+    def __init__(self, _: int, unitVector: typing.Tuple[float, float, float]):
+        self._unitVector_: typing.Tuple[float, float, float] = unitVector
+
+    def __new__(cls, *args, **kwds):
+        obj = object.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
     def __repr__(self) -> str:
         return "{}.{}".format(self.__class__.__name__, self.name)
 
+    @property
+    def unitVector(self) -> typing.Tuple[float, float, float]:
+        return self._unitVector_
+
 
 class UndefMotionDirection(IMotionDirection):
-    UNDEF = 0
+    UNDEF = (0, (0.0,  0.0,  0.0))
 
 
 class CartesianMotionDirection(IMotionDirection):
-    NEG_X = -1
-    POS_X = 1
-    NEG_Y = -2
-    POS_Y = 2
-    NEG_Z = -3
-    POS_Z = 3
+    NEG_X = (-1, (-1.0,  0.0,  0.0))
+    POS_X = ( 1, ( 1.0,  0.0,  0.0))
+    NEG_Y = (-2, ( 0.0, -1.0,  0.0))
+    POS_Y = ( 2, ( 0.0,  1.0,  0.0))
+    NEG_Z = (-3, ( 0.0,  0.0, -1.0))
+    POS_Z = ( 3, ( 0.0,  0.0,  1.0))
