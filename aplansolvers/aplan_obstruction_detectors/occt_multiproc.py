@@ -62,12 +62,15 @@ def multiprocess(filePath: str,
                  configParamSolver: typing.Dict,
                  configParamSolverGeneral: typing.Dict) -> typing.Tuple[typing.Set[typing.Tuple[str, str]], float]:
     doc = FreeCAD.openDocument(filePath, hidden=True)
-    componentsDict = {label: doc.getObjectsByLabel(label)[0] for label in componentLabels}
-    solver: occt.OCCTSolver = occt.OCCTSolver(list(componentsDict.values()), [motionDirection], linearDeflection)
+    components: typing.Set[typing.Any] = {doc.getObjectsByLabel(label)[0] for label in componentLabels}
+    solver: occt.OCCTSolver = occt.OCCTSolver(components, [motionDirection], linearDeflection)
     time0: float = time.perf_counter()
-    componentsIntervalDict: typing.Dict = solver.refine(refinementMethod, configParamRefinement)
-    geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = solver.solve(solverMethod, configParamSolver, configParamSolverGeneral,
-                                                                                                                          componentsIntervalDict=componentsIntervalDict)
+    intervalObstructionsDict: typing.Dict = solver.refine(refinementMethod, 
+                                                          configParamRefinement)
+    geometricalConstraints: typing.Dict[base.CartesianMotionDirection, typing.Set[typing.Tuple[str, str]]] = solver.solve(solverMethod, 
+                                                                                                                          configParamSolver, 
+                                                                                                                          configParamSolverGeneral,
+                                                                                                                          intervalObstructionsDict=intervalObstructionsDict)
     time1: float = time.perf_counter()
     return geometricalConstraints[motionDirection], time1-time0
 

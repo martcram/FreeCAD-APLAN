@@ -470,9 +470,11 @@ class Worker(baseView.BaseWorker):
                                         "type": baseView.MessageType.FOCUS})
                     self.progress.emit({"msg": "\t> Done: {:.3f}s".format(geomConstraints[1]),
                                         "type": baseView.MessageType.INFO})
-                computationTime = max(computationTimes)
+                if computationTimes:
+                    computationTime = max(computationTimes)
             else:
-                self._solver: occt.OCCTSolver = occt.OCCTSolver(list(self._componentsDict.values()), self._motionDirections)
+                self._solver: occt.OCCTSolver = occt.OCCTSolver(self._componentsDict.values(), 
+                                                                self._motionDirections)
 
                 self.progress.emit({"msg": "====== Refining ======",
                                     "type": baseView.MessageType.INFO})
@@ -480,23 +482,24 @@ class Worker(baseView.BaseWorker):
                                     "type": baseView.MessageType.INFO})
                 time0: float = time.perf_counter()
 
-                componentsIntervalDict: typing.Dict = self._solver.refine(self._refinementMethod, self._configParamRefinement)
+                intervalObstructionsDict: typing.Dict = self._solver.refine(self._refinementMethod, 
+                                                                            self._configParamRefinement)
 
                 time1: float = time.perf_counter()
                 computationTime += time1-time0
 
                 noPotentialObstructions: int = 0
-                motionDirLabel: str
+                motionDirection: base.CartesianMotionDirection
                 targetDict: typing.Dict
-                for motionDirLabel, targetDict in componentsIntervalDict.items():
-                    self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirLabel),
+                for motionDirection, targetDict in intervalObstructionsDict.items():
+                    self.progress.emit({"msg": "*** Motion direction: {} ***".format(motionDirection.name),
                                         "type": baseView.MessageType.INFO})
                     targetLabel: str
-                    compIntervalPairs: typing.List
-                    for targetLabel, compIntervalPairs in targetDict.items():
-                        noIntersectionComponents: int = len(set(itertools.chain.from_iterable(compIntervalPairs[0])))
-                        noPotentialObstructions += noIntersectionComponents
-                        self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noIntersectionComponents, targetLabel),
+                    intervalObstructionsPairs: typing.List
+                    for targetLabel, intervalObstructionsPairs in targetDict.items():
+                        noObstructionComponents: int = len(set(itertools.chain.from_iterable([pair[1] for pair in intervalObstructionsPairs])))
+                        noPotentialObstructions += noObstructionComponents
+                        self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noObstructionComponents, targetLabel),
                                             "type": baseView.MessageType.INFO})
                 self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
                                             "type": baseView.MessageType.INFO})
@@ -513,11 +516,12 @@ class Worker(baseView.BaseWorker):
                                     "type": baseView.MessageType.INFO})
                 time2: float = time.perf_counter()
 
-                geometricalConstraints = self._solver.solve(self._solverMethod, self._configParamSolver, 
+                geometricalConstraints = self._solver.solve(self._solverMethod, 
+                                                            self._configParamSolver, 
                                                             self._configParamSolverGeneral,
-                                                            componentsIntervalDict=componentsIntervalDict,
-                                                            movePart=self.__movePart,
-                                                            setPartPlacement=self.__setPartPlacement)
+                                                            intervalObstructionsDict=intervalObstructionsDict,
+                                                            fMovePart=self.__movePart,
+                                                            fSetPartPlacement=self.__setPartPlacement)
 
                 time3: float = time.perf_counter()
                 solverTime = time3-time2
