@@ -35,6 +35,7 @@ try:
     import enum
     import itertools
     import MeshPart
+    import numpy as np
     import random
     import typing
 except ImportError as ie:
@@ -215,7 +216,7 @@ class OCCTRefiner:
     def __init__(self, components: typing.Iterable) -> None:
         self._isRunning: bool = False
         self._components: typing.Set = set(components)
-        self._overallBoundBox = self.__overallBoundbox(self._components)
+        self._overallBoundBox = self.__overallBoundBox(self._components)
 
     # ********************* START: Getters & Setters *********************
 
@@ -236,7 +237,7 @@ class OCCTRefiner:
     def removeComponent(self, component) -> None:
         if component in self._components:
             self._components.remove(component)
-            self._overallBoundBox = self.__overallBoundbox(component.Shape.BoundBox)
+            self._overallBoundBox = self.__overallBoundBox(component.Shape.BoundBox)
 
     @property
     def isRunning(self):
@@ -244,7 +245,7 @@ class OCCTRefiner:
 
     # ********************* END: Getters & Setters *********************
 
-    def __overallBoundbox(self, components: typing.Iterable):
+    def __overallBoundBox(self, components: typing.Iterable):
         overallBoundbox = FreeCAD.BoundBox()
         for component in components:
             overallBoundbox.add(component.Shape.BoundBox)
@@ -254,25 +255,38 @@ class OCCTRefiner:
                                               components: typing.Iterable, 
                                               motionDirection: base.CartesianMotionDirection) -> typing.List[typing.Tuple[typing.Tuple[float, float], 
                                                                                                                           typing.Set[typing.Any]]]:
-        targetBoundBox = target.Shape.BoundBox
         targetBoundary: float = 0.0
         targetSize: float = 0.0
-
         if motionDirection == base.CartesianMotionDirection.POS_X:
-            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
-                                                 self._overallBoundBox.XMax, targetBoundBox.YMax, targetBoundBox.ZMax)
-            targetBoundary = targetBoundBox.XMin
-            targetSize = targetBoundBox.XLength
+            elongatedBoundBox = FreeCAD.BoundBox(target.Shape.BoundBox.XMin, target.Shape.BoundBox.YMin, target.Shape.BoundBox.ZMin, 
+                                                 self._overallBoundBox.XMax, target.Shape.BoundBox.YMax, target.Shape.BoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.XMin
+            targetSize = target.Shape.BoundBox.XLength
         elif motionDirection == base.CartesianMotionDirection.POS_Y:
-            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
-                                                 targetBoundBox.XMax, self._overallBoundBox.YMax, targetBoundBox.ZMax)
-            targetBoundary = targetBoundBox.YMin
-            targetSize = targetBoundBox.YLength
+            elongatedBoundBox = FreeCAD.BoundBox(target.Shape.BoundBox.XMin, target.Shape.BoundBox.YMin, target.Shape.BoundBox.ZMin, 
+                                                 target.Shape.BoundBox.XMax, self._overallBoundBox.YMax, target.Shape.BoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.YMin
+            targetSize = target.Shape.BoundBox.YLength
         elif motionDirection == base.CartesianMotionDirection.POS_Z:
-            elongatedBoundBox = FreeCAD.BoundBox(targetBoundBox.XMin, targetBoundBox.YMin, targetBoundBox.ZMin, 
-                                                 targetBoundBox.XMax, targetBoundBox.YMax, self._overallBoundBox.ZMax)
-            targetBoundary = targetBoundBox.ZMin
-            targetSize = targetBoundBox.ZLength          
+            elongatedBoundBox = FreeCAD.BoundBox(target.Shape.BoundBox.XMin, target.Shape.BoundBox.YMin, target.Shape.BoundBox.ZMin, 
+                                                 target.Shape.BoundBox.XMax, target.Shape.BoundBox.YMax, self._overallBoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.ZMin
+            targetSize = target.Shape.BoundBox.ZLength
+        elif motionDirection == base.CartesianMotionDirection.NEG_X:
+            elongatedBoundBox = FreeCAD.BoundBox(self._overallBoundBox.XMin, target.Shape.BoundBox.YMin, target.Shape.BoundBox.ZMin, 
+                                                 target.Shape.BoundBox.XMax, target.Shape.BoundBox.YMax, target.Shape.BoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.XMax
+            targetSize = target.Shape.BoundBox.XLength
+        elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+            elongatedBoundBox = FreeCAD.BoundBox(target.Shape.BoundBox.XMin, self._overallBoundBox.YMin, target.Shape.BoundBox.ZMin, 
+                                                 target.Shape.BoundBox.XMax, target.Shape.BoundBox.YMax, target.Shape.BoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.YMax
+            targetSize = target.Shape.BoundBox.YLength
+        elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+            elongatedBoundBox = FreeCAD.BoundBox(target.Shape.BoundBox.XMin, target.Shape.BoundBox.YMin, self._overallBoundBox.ZMin, 
+                                                 target.Shape.BoundBox.XMax, target.Shape.BoundBox.YMax, target.Shape.BoundBox.ZMax)
+            targetBoundary = target.Shape.BoundBox.ZMax
+            targetSize = target.Shape.BoundBox.ZLength
 
         intersectionsDict: typing.Dict[typing.Any, typing.Tuple[float, float]] = {}
 
@@ -284,11 +298,17 @@ class OCCTRefiner:
                 intersection = elongatedBoundBox.intersected(component.Shape.BoundBox)
                 if intersection.XLength > 0.01 and intersection.YLength > 0.01 and intersection.ZLength > 0.01:
                     if motionDirection == base.CartesianMotionDirection.POS_X:
-                        intersectionsDict[component] = (intersection.XMin, intersection.XMax)
+                        intersectionsDict[component] = (intersection.XMin-targetBoundary, intersection.XMax-targetBoundary)
                     elif motionDirection == base.CartesianMotionDirection.POS_Y:
-                        intersectionsDict[component] = (intersection.YMin, intersection.YMax)
+                        intersectionsDict[component] = (intersection.YMin-targetBoundary, intersection.YMax-targetBoundary)
                     elif motionDirection == base.CartesianMotionDirection.POS_Z:
-                        intersectionsDict[component] = (intersection.ZMin, intersection.ZMax)
+                        intersectionsDict[component] = (intersection.ZMin-targetBoundary, intersection.ZMax-targetBoundary)
+                    elif motionDirection == base.CartesianMotionDirection.NEG_X:
+                        intersectionsDict[component] = (targetBoundary-intersection.XMax, targetBoundary-intersection.XMin)
+                    elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+                        intersectionsDict[component] = (targetBoundary-intersection.YMax, targetBoundary-intersection.YMin)
+                    elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+                        intersectionsDict[component] = (targetBoundary-intersection.ZMax, targetBoundary-intersection.ZMin)
 
         intervalObstructionsPairs: typing.List[typing.Tuple[typing.Tuple[float, float], 
                                                             typing.Set[typing.Any]]] = []
@@ -304,17 +324,27 @@ class OCCTRefiner:
             if not self._isRunning:
                 return []
             
-            shiftedIntersections: typing.List[typing.Tuple[float, float]] = [(max(targetBoundary, (intersection[0]-targetSize)), 
-                                                                              intersection[1]) for intersection in sortedIntersections]
-            
+            shiftedIntersections: typing.List[typing.Tuple[float, float]] = [(max(0.0, (intersection[0]-targetSize)), intersection[1]) for intersection in sortedIntersections]
             intervalBoundaries: typing.List[float] = sorted(set(itertools.chain.from_iterable(shiftedIntersections)))
-            intervals_: typing.List[typing.Tuple[float, float]] = [boundaries for boundaries in zip(intervalBoundaries, intervalBoundaries[1:])]
             
             if not self._isRunning:
                 return []
+
+            intervals_: typing.List[typing.Tuple[float, float]] = []
+            obstructionComponents_: typing.List[typing.Set[typing.Any]] = []
+            if motionDirection in [base.CartesianMotionDirection.POS_X, base.CartesianMotionDirection.POS_Y, base.CartesianMotionDirection.POS_Z]:
+                intervals_ = [(targetBoundary+boundaries[0], targetBoundary+boundaries[1]) for boundaries in zip(intervalBoundaries, intervalBoundaries[1:])]
+                obstructionComponents_= [{sortedObstructions[index] for index, intersection in enumerate(shiftedIntersections) 
+                                          if interval[0] < targetBoundary+intersection[1] and targetBoundary+intersection[0] < interval[1]} for interval in intervals_]
+                
+            elif motionDirection in [base.CartesianMotionDirection.NEG_X, base.CartesianMotionDirection.NEG_Y, base.CartesianMotionDirection.NEG_Z]:
+                intervals_ = [(targetBoundary-boundaries[0], targetBoundary-boundaries[1]) for boundaries in zip(intervalBoundaries, intervalBoundaries[1:])]
+                obstructionComponents_ = [{sortedObstructions[index] for index, intersection in enumerate(shiftedIntersections) 
+                                           if interval[0] > targetBoundary-intersection[1] and targetBoundary-intersection[0] > interval[1]} for interval in intervals_]
+
+            if not self._isRunning:
+                return []
             
-            obstructionComponents_: typing.List[typing.Set[typing.Any]] = [{sortedObstructions[index] for index, intersection in enumerate(shiftedIntersections) 
-                                                                            if interval[0] < intersection[1] and intersection[0] < interval[1]} for interval in intervals_]
             intervalObstructionsPairs = list(filter(lambda item: len(item[0]) > 0, zip(intervals_, obstructionComponents_)))
 
         return intervalObstructionsPairs
@@ -336,6 +366,12 @@ class OCCTRefiner:
                 interval = (target.Shape.BoundBox.YMin, self._overallBoundBox.YMax)
             elif motionDirection == base.CartesianMotionDirection.POS_Z:
                 interval = (target.Shape.BoundBox.ZMin, self._overallBoundBox.ZMax)
+            elif motionDirection == base.CartesianMotionDirection.NEG_X:
+                interval = (target.Shape.BoundBox.XMax, self._overallBoundBox.XMin)
+            elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+                interval = (target.Shape.BoundBox.YMax, self._overallBoundBox.YMin)
+            elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+                interval = (target.Shape.BoundBox.ZMax, self._overallBoundBox.ZMin)
             obstructionComponents: typing.Set[typing.Any] = set(filter(lambda c: c != target, self._components))
             intervalObstructionsPairs = [(interval, obstructionComponents)]
 
@@ -507,7 +543,13 @@ class OCCTObstructionDetector:
             offset = target.Placement.Base[1]-target.Shape.BoundBox.YMin
         elif motionDirection == base.CartesianMotionDirection.POS_Z:
             offset = target.Placement.Base[2]-target.Shape.BoundBox.ZMin
-        
+        elif motionDirection == base.CartesianMotionDirection.NEG_X:
+            offset = target.Shape.BoundBox.XMax-target.Placement.Base[0]
+        elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+            offset = target.Shape.BoundBox.YMax-target.Placement.Base[1]
+        elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+            offset = target.Shape.BoundBox.ZMax-target.Placement.Base[2]
+
         obstructions: typing.Set[typing.Any] = set()
 
         obstructionInterval: typing.Tuple[float, float]
@@ -518,7 +560,7 @@ class OCCTObstructionDetector:
 
             stepSize: float
             if variableStepSizeEnabled:
-                stepSize = max((obstructionInterval[1]-obstructionInterval[0]) * stepSizeCoefficient, minStepSize)
+                stepSize = max(abs(obstructionInterval[1]-obstructionInterval[0]) * stepSizeCoefficient, minStepSize)
             else:
                 stepSize = fixedStepSize
 
@@ -528,10 +570,17 @@ class OCCTObstructionDetector:
                 baseVector = FreeCAD.Vector(targetStartPosition.Base[0], obstructionInterval[0]+offset, targetStartPosition.Base[2])
             elif motionDirection == base.CartesianMotionDirection.POS_Z:
                 baseVector = FreeCAD.Vector(targetStartPosition.Base[0], targetStartPosition.Base[1], obstructionInterval[0]+offset)
+            elif motionDirection == base.CartesianMotionDirection.NEG_X:
+                baseVector = FreeCAD.Vector(obstructionInterval[0]-offset, targetStartPosition.Base[1], targetStartPosition.Base[2])
+            elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+                baseVector = FreeCAD.Vector(targetStartPosition.Base[0], obstructionInterval[0]-offset, targetStartPosition.Base[2])
+            elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+                baseVector = FreeCAD.Vector(targetStartPosition.Base[0], targetStartPosition.Base[1], obstructionInterval[0]-offset)
             setPartPlacement(target, baseVector, targetStartPosition.Rotation)
 
-            targetPosition = obstructionInterval[0]
-            while targetPosition < obstructionInterval[1]:
+            targetPosition: float = obstructionInterval[0]-obstructionInterval[0]
+            intervalEnd: float = abs(obstructionInterval[1]-obstructionInterval[0])
+            while targetPosition < intervalEnd:
                 if not self._isRunning:
                     return set()
                 
@@ -539,15 +588,19 @@ class OCCTObstructionDetector:
                 if remainingObstructions == set():
                     break
 
+                movePart(target, FreeCAD.Vector(*(np.array(motionDirection.unitVector)*stepSize)))
                 if motionDirection == base.CartesianMotionDirection.POS_X:
-                    movePart(target, FreeCAD.Vector(stepSize, 0.0, 0.0))
-                    targetPosition = target.Shape.BoundBox.XMin
+                    targetPosition = abs(target.Shape.BoundBox.XMin - obstructionInterval[0])
                 elif motionDirection == base.CartesianMotionDirection.POS_Y:
-                    movePart(target, FreeCAD.Vector(0.0, stepSize, 0.0))
-                    targetPosition = target.Shape.BoundBox.YMin
+                    targetPosition = abs(target.Shape.BoundBox.YMin - obstructionInterval[0])
                 elif motionDirection == base.CartesianMotionDirection.POS_Z:
-                    movePart(target, FreeCAD.Vector(0.0, 0.0, stepSize))
-                    targetPosition = target.Shape.BoundBox.ZMin
+                    targetPosition = abs(target.Shape.BoundBox.ZMin - obstructionInterval[0])
+                elif motionDirection == base.CartesianMotionDirection.NEG_X:
+                    targetPosition = abs(target.Shape.BoundBox.XMax - obstructionInterval[0])
+                elif motionDirection == base.CartesianMotionDirection.NEG_Y:
+                    targetPosition = abs(target.Shape.BoundBox.YMax - obstructionInterval[0])
+                elif motionDirection == base.CartesianMotionDirection.NEG_Z:
+                    targetPosition = abs(target.Shape.BoundBox.ZMax - obstructionInterval[0])
 
                 if not self._isRunning:
                     return set()
