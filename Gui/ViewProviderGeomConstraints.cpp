@@ -35,6 +35,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderGeomConstraints, Gui::ViewProviderDocument
 
 ViewProviderGeomConstraints::ViewProviderGeomConstraints()
 {
+    sPixmap = "APLAN_GeomConstraints.svg";
 }
 
 ViewProviderGeomConstraints::~ViewProviderGeomConstraints()

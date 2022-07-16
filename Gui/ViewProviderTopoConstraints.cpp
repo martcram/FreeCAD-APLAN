@@ -33,6 +33,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderTopoConstraints, Gui::ViewProviderDocument
 
 ViewProviderTopoConstraints::ViewProviderTopoConstraints()
 {
+    sPixmap = "APLAN_TopoConstraints.svg";
 }
 
 ViewProviderTopoConstraints::~ViewProviderTopoConstraints()
