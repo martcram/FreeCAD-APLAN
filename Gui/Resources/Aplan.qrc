@@ -7,6 +7,7 @@
         <file>icons/APLAN_CompoundsPurge.svg</file>
         <file>icons/APLAN_ConstraintGroup.svg</file>
         <file>icons/APLAN_ConstraintsPurge.svg</file>
+        <file>icons/APLAN_GeomConstraints.svg</file>
 
         <!-- task panels -->
         <file>ui/aplan_connection_detectors/SwellOCCT.ui</file>
