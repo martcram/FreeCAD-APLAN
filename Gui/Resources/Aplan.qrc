@@ -5,10 +5,12 @@
         <file>icons/APLAN_Compound.svg</file>
         <file>icons/APLAN_CompoundGroup.svg</file>
         <file>icons/APLAN_CompoundsPurge.svg</file>
+        <file>icons/APLAN_ConnectionDetectorSwellOCCT.svg</file>
         <file>icons/APLAN_ConstraintGroup.svg</file>
         <file>icons/APLAN_ConstraintsInspect.svg</file>
         <file>icons/APLAN_ConstraintsPurge.svg</file>
         <file>icons/APLAN_GeomConstraints.svg</file>
+        <file>icons/APLAN_ObstructionDetectorOCCT.svg</file>
         <file>icons/APLAN_PartFilter.svg</file>
         <file>icons/APLAN_ToggleTransparency.svg</file>
         <file>icons/APLAN_TopoConstraints.svg</file>
