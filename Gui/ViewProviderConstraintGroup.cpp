@@ -35,6 +35,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderConstraintGroup, Gui::ViewProviderDocument
 
 ViewProviderConstraintGroup::ViewProviderConstraintGroup()
 {
+    sPixmap = "APLAN_ConstraintGroup.svg";
 }
 
 ViewProviderConstraintGroup::~ViewProviderConstraintGroup()
