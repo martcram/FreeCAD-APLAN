@@ -125,6 +125,13 @@ class SwellOCCT(base.IConnectionDetector):
 
 
 class VPSwellOCCT(base.IVPConnectionDetector):
+    def getIcon(self):
+        """
+        Return the icon in XMP format which will appear in the tree view. 
+        This method is optional and if not defined a default icon is shown.
+        """
+        return ":/icons/APLAN_ConnectionDetectorSwellOCCT.svg"
+    
     def setEdit(self, vobj, mode=0):
         task = _TaskPanel(vobj.Object)
         FreeCADGui.Control.showDialog(task)

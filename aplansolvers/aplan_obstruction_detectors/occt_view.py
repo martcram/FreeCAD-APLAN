@@ -48,6 +48,13 @@ except ImportError as ie:
 
 
 class VPOCCT(baseView.IVPObstructionDetector):
+    def getIcon(self):
+        """
+        Return the icon in XMP format which will appear in the tree view. 
+        This method is optional and if not defined a default icon is shown.
+        """
+        return ":/icons/APLAN_ObstructionDetectorOCCT.svg"
+
     def setEdit(self, vobj, mode=0):
         task = _TaskPanel(vobj.Object)
         FreeCADGui.Control.showDialog(task)

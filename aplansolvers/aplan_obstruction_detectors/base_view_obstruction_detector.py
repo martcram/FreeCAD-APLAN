@@ -89,12 +89,6 @@ class IVPObstructionDetector(metaclass=abc.ABCMeta):
         """
         return None
 
-    def getIcon(self):
-        """
-        Return the icon in XMP format which will appear in the tree view. This method is optional and if not defined a default icon is shown.
-        """
-        return ":/icons/APLAN_ObstructionDetector.svg"
-
     def claimChildren(self):
         """
         Return a list of objects which will appear as children in the tree view.

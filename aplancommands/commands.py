@@ -64,7 +64,6 @@ class _ConnectionDetectorSwellOCCT(CommandManager):
 
     def __init__(self) -> None:
         super(_ConnectionDetectorSwellOCCT, self).__init__()
-        self.pixmap: str = "APLAN_ConnectionDetector"
         self.menutext = Qt.QT_TRANSLATE_NOOP(
             "APLAN_ConnectionDetectorSwellOCCT",
             "SwellOCCT connection detector"
@@ -157,7 +156,6 @@ class _ObstructionDetectorOCCT(CommandManager):
 
     def __init__(self) -> None:
         super(_ObstructionDetectorOCCT, self).__init__()
-        self.pixmap: str = "APLAN_ObstructionDetector"
         self.menutext = Qt.QT_TRANSLATE_NOOP(
             "APLAN_ObstructionDetectorOCCT",
             "OCCT obstruction detector"
