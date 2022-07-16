@@ -9,6 +9,7 @@
         <file>icons/APLAN_ConstraintsInspect.svg</file>
         <file>icons/APLAN_ConstraintsPurge.svg</file>
         <file>icons/APLAN_GeomConstraints.svg</file>
+        <file>icons/APLAN_ToggleTransparency.svg</file>
         <file>icons/APLAN_TopoConstraints.svg</file>
 
         <!-- task panels -->
