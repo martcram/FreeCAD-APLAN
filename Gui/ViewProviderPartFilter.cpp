@@ -35,6 +35,7 @@ PROPERTY_SOURCE(AplanGui::ViewProviderPartFilter, Gui::ViewProviderDocumentObjec
 
 ViewProviderPartFilter::ViewProviderPartFilter()
 {
+    sPixmap = "APLAN_PartFilter.svg";
 }
 
 ViewProviderPartFilter::~ViewProviderPartFilter()
