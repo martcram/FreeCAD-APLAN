@@ -79,8 +79,14 @@ def main(arguments: argparse.Namespace) -> None:
     filePath: str = arguments.file_path
     componentLabels: typing.List[str] = eval(arguments.component_labels)
     motionDirections: typing.Set[base.CartesianMotionDirection] = set(map(base.CartesianMotionDirection, eval(arguments.motion_directions)))
-    nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
-                                                                         for motionDir_ in motionDirections}
+    nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = set()
+    motionDirectionValues: typing.Set[int] = {motionDir.value for motionDir in motionDirections}
+    motionDirValue: int
+    for motionDirValue in motionDirectionValues:
+        if -motionDirValue in motionDirectionValues:
+            nonRedundantMotionDirs.add(base.CartesianMotionDirection(abs(motionDirValue)))
+        else:
+            nonRedundantMotionDirs.add(base.CartesianMotionDirection(motionDirValue))
     linearDeflection: float = float(arguments.linear_deflection)
 
     try:
@@ -99,18 +105,27 @@ def main(arguments: argparse.Namespace) -> None:
     configParamSolver: typing.Dict = json.loads(arguments.config_param_solver)
     configParamSolverGeneral: typing.Dict = json.loads(arguments.config_param_solver_general)
 
+    geomConstraintDict: typing.Dict[int, typing.Tuple[typing.Set[typing.Tuple[str, str]], float]] = {motionDir.value: (set(), 0.0) for motionDir in motionDirections}
     noMotionDirections: int = len(motionDirections)
     with ProcessPoolExecutor(max_workers = noMotionDirections) as executor:
-        print({motionDirection.value: output for motionDirection, output in zip(motionDirections, executor.map(multiprocess,
-                                                                                                               itertools.repeat(filePath,                 noMotionDirections),
-                                                                                                               itertools.repeat(componentLabels,          noMotionDirections),
-                                                                                                               nonRedundantMotionDirs,
-                                                                                                               itertools.repeat(linearDeflection,         noMotionDirections),
-                                                                                                               itertools.repeat(refinementMethod,         noMotionDirections),
-                                                                                                               itertools.repeat(configParamRefinement,    noMotionDirections),
-                                                                                                               itertools.repeat(solverMethod,             noMotionDirections),
-                                                                                                               itertools.repeat(configParamSolver,        noMotionDirections),
-                                                                                                               itertools.repeat(configParamSolverGeneral, noMotionDirections)))})
+        for motionDirection, output in zip(nonRedundantMotionDirs, executor.map(multiprocess,
+                                                                                itertools.repeat(filePath,                 noMotionDirections),
+                                                                                itertools.repeat(componentLabels,          noMotionDirections),
+                                                                                nonRedundantMotionDirs,
+                                                                                itertools.repeat(linearDeflection,         noMotionDirections),
+                                                                                itertools.repeat(refinementMethod,         noMotionDirections),
+                                                                                itertools.repeat(configParamRefinement,    noMotionDirections),
+                                                                                itertools.repeat(solverMethod,             noMotionDirections),
+                                                                                itertools.repeat(configParamSolver,        noMotionDirections),
+                                                                                itertools.repeat(configParamSolverGeneral, noMotionDirections))):
+            geomConstraintDict[motionDirection.value] = output 
+
+    motionDirection_: base.CartesianMotionDirection
+    for motionDirection_ in motionDirections.difference(nonRedundantMotionDirs):
+        oppositeMotionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection(-motionDirection_.value)
+        geomConstraintDict[motionDirection_.value] = ({constraint[::-1] for constraint in geomConstraintDict[oppositeMotionDirection.value][0]}, 0.0)
+    
+    print(geomConstraintDict)
 
 
 if __name__ == "__main__":

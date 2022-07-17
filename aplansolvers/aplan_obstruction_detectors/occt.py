@@ -638,9 +638,16 @@ class OCCTSolver:
             for component in components:
                 self.__tessellateComponent(component, linearDeflection)
         self._components: set = set(components)
-        
-        self._nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = {base.CartesianMotionDirection(abs(motionDir_.value)) 
-                                                                                   for motionDir_ in motionDirections}
+
+        self._motionDirections: typing.Set[base.CartesianMotionDirection] = set(motionDirections)
+        self._nonRedundantMotionDirs: typing.Set[base.CartesianMotionDirection] = set()
+        motionDirectionValues: typing.Set[int] = {motionDir.value for motionDir in self._motionDirections}
+        motionDirValue: int
+        for motionDirValue in motionDirectionValues:
+            if -motionDirValue in motionDirectionValues:
+                self._nonRedundantMotionDirs.add(base.CartesianMotionDirection(abs(motionDirValue)))
+            else:
+                self._nonRedundantMotionDirs.add(base.CartesianMotionDirection(motionDirValue))
 
         self._refiner: OCCTRefiner = OCCTRefiner(self._components)
         self._obstructionDetector: OCCTObstructionDetector = OCCTObstructionDetector(self._components)
@@ -712,6 +719,14 @@ class OCCTSolver:
 
                 geomConstraints[motionDirection].update({(target.Label, component.Label) for component in obstructions})
         
+        if not self._isRunning:
+            return {}
+
+        motionDirection_: base.CartesianMotionDirection
+        for motionDirection_ in self._motionDirections.difference(self._nonRedundantMotionDirs):
+            oppositeMotionDirection: base.CartesianMotionDirection = base.CartesianMotionDirection(abs(motionDirection_.value))
+            geomConstraints[motionDirection_] = {constraint[::-1] for constraint in geomConstraints.get(oppositeMotionDirection, set())}
+
         self._isRunning = False
         return geomConstraints
 
