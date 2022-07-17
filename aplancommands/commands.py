@@ -26,14 +26,15 @@ __title__ = "FreeCAD APLAN command definitions"
 __author__ = "Martijn Cramer"
 __url__ = "https://www.freecadweb.org"
 
+import FreeCAD
 from .manager import CommandManager
 from aplantools import aplanutils
-import FreeCAD
-if FreeCAD.GuiUp:
-    import AplanGui
-    import FreeCADGui
-    from FreeCAD import Qt
 import ObjectsAplan
+
+if FreeCAD.GuiUp:
+    from FreeCAD import Qt
+    import FreeCADGui
+    import AplanGui
 
 # Python command definitions
 # For C++ command definitions is referred to src/Mod/Aplan/Command.cpp
@@ -188,7 +189,7 @@ class _PartFilter(CommandManager):
         )
         self.tooltip = Qt.QT_TRANSLATE_NOOP(
             "APLAN_PartFilter",
-            "Creates a part filter for grouping or exluding parts from analysis"
+            "Creates a part filter for grouping or excluding parts from analysis"
         )
         self.do_activated = "add_obj_on_gui_set_edit"
     
