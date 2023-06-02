@@ -138,6 +138,7 @@ This project is distributed under the LGPL-2.1 License. See `LICENSE` for more i
 * [KU Leuven](https://iiw.kuleuven.be/english/diepenbeek) @ Diepenbeek Campus
 * Automation, Computer vision and Robotics ([ACRO](https://iiw.kuleuven.be/onderzoek/acro)) research unit
 * Research Foundation - Flanders ([FWO](https://www.fwo.be/en/))
+* FlandersMake@KU Leuven
 * Workbench icon: <a href="https://www.flaticon.com/authors/monkik" title="monkik">monkik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
