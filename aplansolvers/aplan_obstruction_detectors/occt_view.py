@@ -271,10 +271,10 @@ class _TaskPanel(baseView.ITaskPanel):
             self.__dict__["_{}".format(paramLabel)] = qWidgets["value"].value()
 
     def __readInputFields(self) -> None:
-        self._stepSizeCoefficient = float(self.form.dsb_step_size_coeff.text())
-        self._minStepSize = float(self.form.dsb_min_step_size.text())
-        self._fixedStepSize = float(self.form.dsb_fixed_step_size.text())
-        self._linearDeflection = float(self.form.dsb_linear_deflection.text())
+        self._stepSizeCoefficient = float(self.form.dsb_step_size_coeff.text().replace(',', '.'))
+        self._minStepSize = float(self.form.dsb_min_step_size.text().replace(',', '.'))
+        self._fixedStepSize = float(self.form.dsb_fixed_step_size.text().replace(',', '.'))
+        self._linearDeflection = float(self.form.dsb_linear_deflection.text().replace(',', '.'))
 
     def __reportProgress(self, progress: typing.Dict) -> None:
         self.form.te_output.setTextColor(baseView.MessageType(progress["type"]).value)
