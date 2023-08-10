@@ -25,7 +25,6 @@
 #include "PreCompiled.hpp"
 
 #ifndef _PreComp_
-#include <boost_bind_bind.hpp>
 #include <QAction>
 #include <QMenu>
 #endif
