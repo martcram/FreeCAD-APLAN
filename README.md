@@ -53,6 +53,9 @@ This workbench is an attempt to introduce automatic assembly sequence planning (
 This project started in the context of Ph.D. research into _intention-based human-robot collaborative assembly_, and was first mentioned in the following paper:
 > M. Cramer, K. Kellens and E. Demeester, "Probabilistic Decision Model for Adaptive Task Planning in Human-Robot Collaborative Assembly Based on Designer and Operator Intents," in IEEE Robotics and Automation Letters, vol. 6, no. 4, pp. 7325-7332, Oct. 2021, doi: 10.1109/LRA.2021.3095513.
 
+### Videos
+* Automatic constraint detectors and interactive graph visualiser <a href="https://www.youtube.com/watch?v=JbgxcF72h3o&list=PL29v8E3cR3d5I-SWr5tmJGdl9SKvnXW1B&index=4">[YouTube]</a>
+
 ### Built with
 * FreeCAD version info:
 ```
