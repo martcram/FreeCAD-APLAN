@@ -567,7 +567,7 @@ class Worker(baseView.BaseWorker):
         if FREECAD_PYTHON_PATH:
             sys.path.append(FREECAD_PYTHON_PATH)
             cmd = [FREECAD_PYTHON_PATH, MULTIPROC_SCRIPT_PATH,
-                   "--file_path", "/home/cramer/OneDrive/programming/freecad/FreeCAD-models/Bourjault_ballpoint_simplified/asm_bourjault_ballpoint.FCStd",
+                   "--file_path", str(FreeCAD.ActiveDocument.FileName),
                    "--component_labels", str(list(self._componentsDict.keys())),
                    "--motion_directions", str([m.value for m in self._motionDirections]),
                    "--linear_deflection", str(self._linearDeflection),
