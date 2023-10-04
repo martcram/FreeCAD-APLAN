@@ -284,11 +284,11 @@ class OCCTRefiner:
                 intersection = elongatedBoundBox.intersected(component.Shape.BoundBox)
                 if intersection.XLength > 0.01 and intersection.YLength > 0.01 and intersection.ZLength > 0.01:
                     if motionDirection == base.CartesianMotionDirection.POS_X:
-                        intersectionsDict[component] = (intersection.XMin, intersection.XMax)
+                        intersectionsDict[component.Label] = (intersection.XMin, intersection.XMax)
                     elif motionDirection == base.CartesianMotionDirection.POS_Y:
-                        intersectionsDict[component] = (intersection.YMin, intersection.YMax)
+                        intersectionsDict[component.Label] = (intersection.YMin, intersection.YMax)
                     elif motionDirection == base.CartesianMotionDirection.POS_Z:
-                        intersectionsDict[component] = (intersection.ZMin, intersection.ZMax)
+                        intersectionsDict[component.Label] = (intersection.ZMin, intersection.ZMax)
 
         intervalObstructionsPairs: typing.List[typing.Tuple[typing.Tuple[float, float], 
                                                             typing.Set[typing.Any]]] = []
@@ -336,7 +336,7 @@ class OCCTRefiner:
                 interval = (target.Shape.BoundBox.YMin, self._overallBoundBox.YMax)
             elif motionDirection == base.CartesianMotionDirection.POS_Z:
                 interval = (target.Shape.BoundBox.ZMin, self._overallBoundBox.ZMax)
-            obstructionComponents: typing.Set[typing.Any] = set(filter(lambda c: c != target, self._components))
+            obstructionComponents: typing.Set[typing.Any] = {c.Label for c in self._components if c != target}
             intervalObstructionsPairs = [(interval, obstructionComponents)]
 
         elif method == RefinementMethod.BoundBox:
@@ -399,6 +399,9 @@ class OCCTObstructionDetector:
         partPointsMeshDict: typing.Dict = kwargs.get("partPointsMeshDict", {})
         partPointsSampleDict: typing.Dict = kwargs.get("partPointsSampleDict", {})
 
+        potentialObstacles_ = {comp for comp in self._components if comp.Label in potentialObstacles}
+        potentialObstacles = potentialObstacles_
+
         collidingObjects: typing.Set[typing.Any] = set()
         for obl in potentialObstacles:
             if not self._isRunning:
@@ -435,7 +438,7 @@ class OCCTObstructionDetector:
                             if not self._isRunning:
                                 return set()
                             if target.Shape.isInside(pointPair[1], classificationTolerance, False) or obl.Shape.isInside(pointPair[0], classificationTolerance, False):
-                                collidingObjects.add(obl)
+                                collidingObjects.add(obl.Label)
                                 break
                 elif method == SolverMethod.MeshInside:
                     boundBox = obl.Shape.BoundBox
@@ -447,7 +450,7 @@ class OCCTObstructionDetector:
                         if not self._isRunning:
                             return set()
                         if target.Shape.isInside(FreeCAD.Vector(p.x, p.y, p.z), classificationTolerance, False):
-                            collidingObjects.add(obl)
+                            collidingObjects.add(obl.Label)
                             break
                 elif method == SolverMethod.GeoDataInside:
                     boundBox = obl.Shape.BoundBox
@@ -460,14 +463,14 @@ class OCCTObstructionDetector:
                         if not self._isRunning:
                             return set()
                         if target.Shape.isInside(FreeCAD.Vector(*point), classificationTolerance, False):
-                            collidingObjects.add(obl)
+                            collidingObjects.add(obl.Label)
                             break
                 elif method == SolverMethod.Common:
                     if target.Shape.common(obl.Shape).Volume > volumeTolerance:
-                        collidingObjects.add(obl)
+                        collidingObjects.add(obl.Label)
                 elif method == SolverMethod.Fuse:
                     if target.Shape.fuse(obl.Shape).Volume < (target.Shape.Volume + obl.Shape.Volume - volumeTolerance):
-                        collidingObjects.add(obl)
+                        collidingObjects.add(obl.Label)
         
         return collidingObjects
 
@@ -657,7 +660,7 @@ class OCCTSolver:
                                                                                        fMovePart=fMovePart,
                                                                                        fSetPartPlacement=fSetPartPlacement)
 
-                geomConstraints[motionDirection].update({(target.Label, component.Label) for component in obstructions})
+                geomConstraints[motionDirection].update({(target.Label, component) for component in obstructions})
         
         self._isRunning = False
         return geomConstraints
