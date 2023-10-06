@@ -75,4 +75,8 @@ class GeomConstraints(base_aplanpythonobject.BaseAplanPythonObject):
                 obstrGraph.add_nodes_from([component.Label for component in analysis.Components])
             else:
                 obstrGraph.add_edges_from(constraints)
+                for component in analysis.Components:
+                    if component.Label not in obstrGraph.nodes:
+                        obstrGraph.add_node(component.Label)
+
             obstrGraph.exportToFile(obj.FileLocation)
