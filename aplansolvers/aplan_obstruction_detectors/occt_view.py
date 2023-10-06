@@ -36,6 +36,7 @@ from aplantools import aplanutils
 try:
     import itertools
     import json
+    import math
     import os
     from PySide2 import QtCore, QtWidgets
     import signal
@@ -495,6 +496,12 @@ class Worker(baseView.BaseWorker):
                 time1: float = time.perf_counter()
                 computationTime += time1-time0
 
+                noCollisionChecks: int = 0
+                if self._refinementMethod == occt.RefinementMethod.None_:
+                    noCollisionChecks = self.__maxNoCollisionChecks(intervalObstructionsDict, self._configParamSolverGeneral["fixedStepSize"])
+                elif self._refinementMethod == occt.RefinementMethod.BoundBox:
+                    noCollisionChecks = self.__maxNoCollisionChecksRefinement(intervalObstructionsDict, self._configParamSolverGeneral["stepSizeCoefficient"], self._configParamSolverGeneral["minStepSize"])
+
                 noPotentialObstructions: int = 0
                 motionDirection: base.CartesianMotionDirection
                 targetDict: typing.Dict
@@ -509,7 +516,9 @@ class Worker(baseView.BaseWorker):
                         self.progress.emit({"msg": "\tFound {} potential obstructions for {}.".format(noObstructionComponents, targetLabel),
                                             "type": baseView.MessageType.INFO})
                 self.progress.emit({"msg": "*******\nFound {} potential obstructions in total.".format(noPotentialObstructions),
-                                            "type": baseView.MessageType.INFO})
+                                    "type": baseView.MessageType.INFO})
+                self.progress.emit({"msg": "Maximum number of collision checks: {}.".format(noCollisionChecks),
+                                    "type": baseView.MessageType.INFO})
                 self.progress.emit({"msg": "> Done: {:.3f}s".format(time1-time0),
                                     "type": baseView.MessageType.INFO})
 
@@ -612,3 +621,28 @@ class Worker(baseView.BaseWorker):
         self.progress.emit({"msg": ">>> ABORTED",
                             "type": baseView.MessageType.WARNING})
         self.finished.emit({})
+
+    def __maxNoCollisionChecks(self, intervalObstructionsDict: typing.Dict, fixedStepSize: float) -> int:
+        noChecks: int = 0
+        targetDict: typing.Dict
+        for _, targetDict in intervalObstructionsDict.items():
+            intervalObstructionsPairs: typing.List
+            for intervalObstructionsPairs in targetDict.values():
+                pair: typing.Tuple
+                for pair in intervalObstructionsPairs:
+                    intervalLength = pair[0][1]-pair[0][0]
+                    noChecks += math.floor(intervalLength/fixedStepSize) * len(self._componentsDict.keys())-1
+        return noChecks
+
+    def __maxNoCollisionChecksRefinement(self, intervalObstructionsDict: typing.Dict, stepSizeCoefficient: float, minStepSize: float) -> int:
+        noChecksRefinement: int = 0
+        targetDict: typing.Dict
+        for _, targetDict in intervalObstructionsDict.items():
+            intervalObstructionsPairs: typing.List
+            for intervalObstructionsPairs in targetDict.values():
+                pair: typing.Tuple
+                for pair in intervalObstructionsPairs:
+                    intervalLength = pair[0][1]-pair[0][0]
+                    stepSize = max(intervalLength * stepSizeCoefficient, minStepSize)
+                    noChecksRefinement += math.floor(intervalLength/stepSize) * len(pair[1])
+        return noChecksRefinement
