@@ -545,9 +545,25 @@ class Worker(baseView.BaseWorker):
 
                 motionDir_: base.CartesianMotionDirection
                 geomConstraints_: typing.Set[typing.Tuple[str, str]]
-                for motionDir_, geomConstraints_ in geometricalConstraints.items():    
+                for motionDir_, geomConstraints_ in geometricalConstraints.items():
                     self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir_.name.upper(), len(geomConstraints_)),
                                         "type": baseView.MessageType.FOCUS})
+
+                    fileReadable: bool
+                    missingConstraints: typing.Set[str, str] = {}
+                    excessConstraints: typing.Set[str, str] = {}
+                    groundTruthPath: str = '/'.join(FreeCAD.ActiveDocument.FileName.split('/')[:-1] + ["GroundTruth", "GeomConstraints_" + motionDir_.name.upper() + ".json"])
+                    fileReadable, missingConstraints, excessConstraints = self.__checkConstraintsCorrectness(groundTruthPath, geomConstraints_, motionDir_)
+                    if fileReadable:
+                        noMissingConstraints: int = len(missingConstraints)
+                        noExcessConstraints: int = len(excessConstraints)
+                        if noMissingConstraints > 0:
+                            self.progress.emit({"msg": "\t> {} missing constraint(s) w.r.t. ground truth data".format(noMissingConstraints),
+                                                "type": baseView.MessageType.WARNING})
+                        if noExcessConstraints > 0:
+                            self.progress.emit({"msg": "\t> {} excess constraint(s) w.r.t. ground truth data".format(noExcessConstraints),
+                                                "type": baseView.MessageType.WARNING})
+                    
                 self.progress.emit({"msg": "> Done: {:.3f}s".format(solverTime),
                                     "type": baseView.MessageType.INFO})
 
@@ -646,3 +662,25 @@ class Worker(baseView.BaseWorker):
                     stepSize = max(intervalLength * stepSizeCoefficient, minStepSize)
                     noChecksRefinement += math.floor(intervalLength/stepSize) * len(pair[1])
         return noChecksRefinement
+    
+    def __checkConstraintsCorrectness(self, groundTruthPath: str, geometricalConstraints: typing.Set[typing.Tuple[str, str]], motionDirection: base.CartesianMotionDirection) -> typing.Tuple[bool, typing.Set, typing.Set]:
+        fileReadable: bool = False
+        missingConstraints: typing.Set[str, str] = {}
+        excessConstraints: typing.Set[str, str] = {}
+
+        if os.path.isfile(groundTruthPath) and os.access(groundTruthPath, os.R_OK):
+            fileReadable = True
+            with open(groundTruthPath) as jsonFile:
+                groundTruth = json.load(jsonFile)
+                groundTruthConstraints: typing.Set[typing.Tuple[str, str]] = {(link["source"], link["target"]) for link in groundTruth["links"]}
+                missingConstraints = groundTruthConstraints.difference(geometricalConstraints)
+                excessConstraints = geometricalConstraints.difference(groundTruthConstraints)
+
+                outputPath: str = '/'.join(FreeCAD.ActiveDocument.FileName.split('/')[:-1] + ["GroundTruth", "CorrectnessCheck_" + motionDirection.name.upper() + ".json"])
+                with open(outputPath, 'w') as f:
+                    output: typing.Dict[str, typing.Set[typing.Tuple[str, str]]] = {"missing": list(missingConstraints), "excess": list(excessConstraints)}
+                    json.dump(output, f)
+
+                return True, missingConstraints, excessConstraints
+        
+        return fileReadable, missingConstraints, excessConstraints
