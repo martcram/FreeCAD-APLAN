@@ -65,4 +65,8 @@ class TopoConstraints(base_aplanpythonobject.BaseAplanPythonObject):
                 conGraph.add_nodes_from([component.Label for component in analysis.Components])
             else:
                 conGraph.add_edges_from(constraints)
+                for component in analysis.Components:
+                    if component.Label not in conGraph.nodes:
+                        conGraph.add_node(component.Label)
+            
             conGraph.exportToFile(obj.FileLocation)
