@@ -476,6 +476,22 @@ class Worker(baseView.BaseWorker):
                     computationTimes.append(geomConstraints[1])
                     self.progress.emit({"msg": "\t{}: FOUND {} GEOMETRICAL CONSTRAINT(S)".format(motionDir.name.upper(), len(geomConstraints[0])),
                                         "type": baseView.MessageType.FOCUS})
+                    
+                    fileReadable: bool
+                    missingConstraints: typing.Set[str, str] = {}
+                    excessConstraints: typing.Set[str, str] = {}
+                    groundTruthPath: str = '/'.join(FreeCAD.ActiveDocument.FileName.split('/')[:-1] + ["GroundTruth", "GeomConstraints_" + motionDir.name.upper() + ".json"])
+                    fileReadable, missingConstraints, excessConstraints = self.__checkConstraintsCorrectness(groundTruthPath, geomConstraints[0], motionDir)
+                    if fileReadable:
+                        noMissingConstraints: int = len(missingConstraints)
+                        noExcessConstraints: int = len(excessConstraints)
+                        if noMissingConstraints > 0:
+                            self.progress.emit({"msg": "\t> {} missing constraint(s) w.r.t. ground truth data".format(noMissingConstraints),
+                                                "type": baseView.MessageType.WARNING})
+                        if noExcessConstraints > 0:
+                            self.progress.emit({"msg": "\t> {} excess constraint(s) w.r.t. ground truth data".format(noExcessConstraints),
+                                                "type": baseView.MessageType.WARNING})
+
                     self.progress.emit({"msg": "\t> Done: {:.3f}s".format(geomConstraints[1]),
                                         "type": baseView.MessageType.INFO})
                 if computationTimes:
