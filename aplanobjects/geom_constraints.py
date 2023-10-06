@@ -68,7 +68,7 @@ class GeomConstraints(base_aplanpythonobject.BaseAplanPythonObject):
         obj.MotionDirection = repr(motionDirection)
     
         if hasattr(obj, "FileLocation"):
-            obj.FileLocation = "{}/{}_{}.json".format(analysis.WorkingDir, obj.Label, obj.MotionDirection.replace('.', '-'))
+            obj.FileLocation = "{}/{}.json".format(analysis.WorkingDir, obj.Label)
 
             obstrGraph: graphs.ObstructionGraph = graphs.ObstructionGraph()
             if len(constraints) == 0:
