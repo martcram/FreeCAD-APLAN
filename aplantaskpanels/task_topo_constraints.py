@@ -174,6 +174,7 @@ class _TaskPanel:
         for index, connection in enumerate(connections):
             self.form.tw_constraints_list.setItem(index, 0, QtWidgets.QTableWidgetItem(connection[0]))
             self.form.tw_constraints_list.setItem(index, 1, QtWidgets.QTableWidgetItem(connection[1]))
+        self.form.tw_constraints_list.sortItems(0, order=QtCore.Qt.SortOrder.AscendingOrder)
 
     def __resetPartViews(self) -> None:
         for component in self._parts.values():
