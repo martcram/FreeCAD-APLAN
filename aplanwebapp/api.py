@@ -78,7 +78,7 @@ def getObstructionGraph() -> typing.Dict:
 def getObstructionGraphEdges() -> typing.Set[typing.Tuple]:
     obstructionGraph: typing.Dict = getObstructionGraph()
     if obstructionGraph:
-        return {tuple(sorted([link["source"], link["target"]])) for link in obstructionGraph["links"]}
+        return {tuple([link["source"], link["target"]]) for link in obstructionGraph["links"]}
     else:
         return set()
 
